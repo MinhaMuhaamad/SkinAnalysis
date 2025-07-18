@@ -1,0 +1,34 @@
+{
+  "name": "makeup-ai-backend",
+  "version": "1.0.0",
+  "description": "Backend API for MakeupAI application",
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.0.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "mongoose": "8.0.3",
+    "bcryptjs": "2.4.3",
+    "jsonwebtoken": "9.0.2",
+    "nodemailer": "6.9.7",
+    "cors": "2.8.5",
+    "crypto": "1.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.10.0",
+    "@types/react": "18.2.45",
+    "@types/react-dom": "18.2.18",
+    "@types/bcryptjs": "2.4.6",
+    "@types/jsonwebtoken": "9.0.5",
+    "@types/nodemailer": "6.4.14",
+    "@types/cors": "2.8.17",
+    "typescript": "5.3.3",
+    "eslint": "8.56.0",
+    "eslint-config-next": "14.0.4"
+  }
+}

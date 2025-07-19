@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -19,22 +21,30 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-
+import { useState, useEffect } from "react"
 export default function HomePage() {
+  const images = [
+    { src: "/woman-8277925_1280.jpg", alt: "Before and After Makeup 2", points: ["Eyelash", "Blush", "Contour"] },
+    { src: "/facial-recognition-collage-concept (1).jpg", alt: "Before and After Makeup 1", points: ["Hair Color", "Eyeshadow", "Lipstick"] },
+    { src: "/woman-8277925_1280.jpg", alt: "Before and After Makeup 2", points: ["Eyelash", "Blush", "Contour"] },
+    { src: "/facial-recognition-collage-concept.jpg", alt: "Before and After Makeup 3", points: ["Eyebrow", "Highlight", "Eyecolor"] },
+    { src: "/woman-6654427_1280.jpg", alt: "Before and After Makeup 3", points: ["Eyebrow", "Highlight", "Eyecolor"] },
+  ]
+  const [currentImage, setCurrentImage] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % images.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [images.length])
+
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
-      {/* Hero Section with Video Background */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Video Background */}
-        <div className="absolute inset-0 z-0">
-          <video autoPlay muted loop playsInline className="w-full h-full object-cover opacity-30">
-           <video width="640" height="360" controls>
-         <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
-       Your browser does not support the video tag.
-         </video>
-          </video>
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/60 via-black/70 to-cyan-900/60"></div>
-        </div>
+      {/* Hero Section with Image Slideshow */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden mx-4 md:mx-12">
+
+        {/* Background Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/60 via-black/70 to-cyan-900/60"></div>
 
         {/* Floating Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -117,15 +127,46 @@ export default function HomePage() {
 
             <div className="relative lg:block hidden">
               <div className="relative z-10">
-                <div className="relative">
-                  <Image
-                    src="/placeholder.svg?height=700&width=500"
-                    alt="AI Makeup Analysis"
-                    width={500}
-                    height={700}
-                    className="rounded-3xl shadow-2xl border border-purple-400/20"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 via-transparent to-cyan-900/20 rounded-3xl"></div>
+               <div className="relative h-[500px] md:h-[600px] lg:h-[650px] w-full max-w-[400px] lg:max-w-[500px] rounded-3xl overflow-hidden border border-purple-400/20 shadow-2xl">
+
+                  {images.map((image, index) => (
+                    <div
+                      key={index}
+                      className={`absolute inset-0 transition-opacity duration-1000 ${
+                        index === currentImage ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      <Image
+                        src={image.src}
+                        alt={image.alt}
+                        width={500}
+                        height={700}
+                        className="object-cover w-full h-full"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 via-transparent to-cyan-900/20"></div>
+                      {index === currentImage && (
+                        <div className="absolute bottom-4 left-4 right-4 flex justify-center space-x-4">
+                          {image.points.map((point, i) => (
+                            <div
+                              key={i}
+                              className="bg-white/10 text-white px-2 py-1 rounded-full text-sm animate-pulse"
+                              style={{ animationDelay: `${i * 0.2}s` }}
+                            >
+                              {point}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <button className="bg-white/20 rounded-full p-2 hover:bg-white/30 transition-colors">
+                          <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+                            <path d="M10 8l6 4-6 4V8z" fill="currentColor" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

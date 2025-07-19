@@ -36,49 +36,54 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    
-
+    console.log("Form submitted:", formData)
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/auth/signup", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
           email: formData.email,
           password: formData.password,
-          subscribeNewsletter: formData.subscribeNewsletter,
+          rememberMe: formData.rememberMe,
         }),
       })
 
       const data = await response.json()
+      console.log("API response:", { status: response.status, data })
 
       if (response.ok) {
+        try {
+          localStorage.setItem("authToken", data.token)
+          console.log("Token set in localStorage")
+        } catch (error) {
+          console.error("Failed to set localStorage:", error)
+        }
         toast({
-          title: "Account created! 🎉",
-          description: "Welcome to MakeupAI! Please check your email to verify your account.",
+          title: "Welcome back! ✨",
+          description: "You have successfully logged in.",
         })
-        // Redirect to login page
-        router.push("/auth/login")
+        router.push("/")
+        console.log("Redirecting to /")
       } else {
         toast({
-          title: "Signup failed",
-          description: data.message || "Unable to create account. Please try again.",
+          title: "Login failed",
+          description: data.message || "Invalid credentials. Please try again.",
           variant: "destructive",
         })
       }
     } catch (error) {
+      console.error("Fetch error:", error)
       toast({
         title: "Connection error",
         description: "Unable to connect to server. Please try again.",
         variant: "destructive",
       })
     } finally {
+      console.log("Resetting isLoading")
       setIsLoading(false)
     }
   }

@@ -1,21 +1,20 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Palette, Mail, Lock, User, Eye, EyeOff, Zap, Chrome, UserPlus } from "lucide-react"
-import Link from "next/link"
-import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Palette, Mail, Lock, User, Eye, EyeOff, Zap, Chrome, UserPlus } from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface SignupFormProps {
-  onSuccess?: () => void
+  onSuccess?: () => void;
 }
 
 export function SignupForm({ onSuccess }: SignupFormProps) {
@@ -27,20 +26,20 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
     confirmPassword: "",
     agreeToTerms: false,
     subscribeNewsletter: true,
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
-  const router = useRouter()
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
-    }))
-  }
+    }));
+  };
 
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
@@ -48,8 +47,8 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         title: "Password mismatch",
         description: "Passwords do not match. Please try again.",
         variant: "destructive",
-      })
-      return false
+      });
+      return false;
     }
 
     if (formData.password.length < 8) {
@@ -57,8 +56,8 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         title: "Weak password",
         description: "Password must be at least 8 characters long.",
         variant: "destructive",
-      })
-      return false
+      });
+      return false;
     }
 
     if (!formData.agreeToTerms) {
@@ -66,32 +65,61 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         title: "Terms required",
         description: "Please agree to the terms and conditions.",
         variant: "destructive",
-      })
-      return false
+      });
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          subscribeNewsletter: formData.subscribeNewsletter,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Account created! 🎉",
+          description: "Welcome to MakeupAI! Please check your email to verify your account.",
+        });
+        onSuccess?.();
+        router.push("/auth/login");
+      } else {
+        toast({
+          title: "Signup failed",
+          description: data.message || "Unable to create account. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Account created! 🎉",
-        description: "Welcome to MakeupAI! Please check your email to verify your account.",
-      })
-      localStorage.setItem("authToken", "demo-token")
-      onSuccess?.()
-      router.push("/")
-      setIsLoading(false)
-    }, 1000)
-  }
+        title: "Connection error",
+        description: "Unable to connect to server. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center relative overflow-hidden py-8">
@@ -345,5 +373,5 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         </Card>
       </div>
     </div>
-  )
+  );
 }

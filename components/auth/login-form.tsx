@@ -1,7 +1,5 @@
 "use client"
-
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +17,9 @@ export function LoginForm() {
     email: "",
     password: "",
     rememberMe: false,
+    firstName: "",
+    lastName: "",
+    subscribeNewsletter: false,
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -35,18 +36,51 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    
+
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Welcome back! ✨",
-        description: "You have successfully logged in.",
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          subscribeNewsletter: formData.subscribeNewsletter,
+        }),
       })
-      localStorage.setItem("authToken", "demo-token")
-      router.push("/")
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast({
+          title: "Account created! 🎉",
+          description: "Welcome to MakeupAI! Please check your email to verify your account.",
+        })
+        // Redirect to login page
+        router.push("/auth/login")
+      } else {
+        toast({
+          title: "Signup failed",
+          description: data.message || "Unable to create account. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Connection error",
+        description: "Unable to connect to server. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -55,7 +89,6 @@ export function LoginForm() {
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/60 via-black/70 to-cyan-900/60"></div>
       </div>
-
       {/* Floating Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 rounded-full blur-xl animate-pulse"></div>

@@ -1,48 +1,53 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/makeup-ai"
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://minha:894c5012@cluster0.epkwp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable inside .env.local")
+  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
 }
 
 interface GlobalMongoose {
-  conn: typeof mongoose | null
-  promise: Promise<typeof mongoose> | null
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
 }
 
 declare global {
-  var myMongoose: GlobalMongoose | undefined
+  // eslint-disable-next-line no-var
+  var mongoose: GlobalMongoose | undefined;
 }
 
-let cached = global.myMongoose
+let cached = global.mongoose;
 
 if (!cached) {
-  cached = global.myMongoose = { conn: null, promise: null }
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
 export async function connectDB() {
   if (cached!.conn) {
-    return cached!.conn
+    console.log("✅ Using cached MongoDB connection");
+    return cached!.conn;
   }
 
   if (!cached!.promise) {
     const opts = {
       bufferCommands: false,
-    }
+    };
 
     cached!.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log("✅ Connected to MongoDB")
-      return mongoose
-    })
+      console.log("✅ Successfully connected to MongoDB");
+      return mongoose;
+    }).catch((error) => {
+      console.error("❌ MongoDB connection error:", error);
+      throw error;
+    });
   }
 
   try {
-    cached!.conn = await cached!.promise
+    cached!.conn = await cached!.promise;
   } catch (e) {
-    cached!.promise = null
-    throw e
+    cached!.promise = null;
+    throw e;
   }
 
-  return cached!.conn
+  return cached!.conn;
 }

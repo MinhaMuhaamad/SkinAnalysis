@@ -106,7 +106,7 @@ export default function LookbookPage() {
   const occasions = ["all", "favorites", "work", "date night", "party", "wedding", "casual", "festival"]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
@@ -137,8 +137,8 @@ export default function LookbookPage() {
                   onClick={() => setSelectedFilter(occasion)}
                   className={`whitespace-nowrap ${
                     selectedFilter === occasion
-                      ? "bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600"
-                      : ""
+                      ? "bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white dark:text-white"
+                      : "dark:text-gray-300 dark:hover:bg-gray-700"
                   }`}
                 >
                   {occasion === "all"
@@ -153,13 +153,13 @@ export default function LookbookPage() {
 
           {/* Stats Cards */}
           <div className="grid md:grid-cols-4 gap-4 mb-8">
-            <Card className="border-0 shadow-md">
+            <Card className="border-0 shadow-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-rose-600">{savedLooks.length}</div>
                 <div className="text-sm text-gray-600">Total Looks</div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-md">
+            <Card className="border-0 shadow-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-pink-600">
                   {savedLooks.filter((look) => look.isFavorite).length}
@@ -167,7 +167,7 @@ export default function LookbookPage() {
                 <div className="text-sm text-gray-600">Favorites</div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-md">
+            <Card className="border-0 shadow-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-purple-600">
                   {new Set(savedLooks.map((look) => look.occasion)).size}
@@ -175,7 +175,7 @@ export default function LookbookPage() {
                 <div className="text-sm text-gray-600">Occasions</div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-md">
+            <Card className="border-0 shadow-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-rose-600">
                   {new Set(savedLooks.flatMap((look) => look.products)).size}

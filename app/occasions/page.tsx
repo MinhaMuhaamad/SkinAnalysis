@@ -193,14 +193,16 @@ export default function OccasionsPage() {
   const currentLooks = occasionLooks[selectedOccasion as keyof typeof occasionLooks] || []
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-4">
               Occasion-Based Looks
             </h1>
-            <p className="text-xl text-gray-600">Perfect makeup looks for every moment and celebration</p>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              Perfect makeup looks for every moment and celebration
+            </p>
           </div>
 
           {/* Occasion Selector */}
@@ -238,11 +240,11 @@ export default function OccasionsPage() {
               {React.createElement(occasionIcons[selectedOccasion as keyof typeof occasionIcons], {
                 className: "h-8 w-8 text-rose-600",
               })}
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                 {occasionTitles[selectedOccasion as keyof typeof occasionTitles]}
               </h2>
             </div>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600 text-lg dark:text-gray-400">
               Discover the perfect makeup looks for your{" "}
               {occasionTitles[selectedOccasion as keyof typeof occasionTitles].toLowerCase()} occasions
             </p>
@@ -284,11 +286,15 @@ export default function OccasionsPage() {
                   </div>
                 </div>
 
-                <CardContent className="p-6">
+                <CardContent className="p-6 dark:text-gray-300">
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{look.name}</h3>
-                      <p className="text-gray-600">{look.description}</p>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                        {look.name}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        {look.description}
+                      </p>
                     </div>
 
                     <div className="flex flex-wrap gap-1">
@@ -300,8 +306,10 @@ export default function OccasionsPage() {
                     </div>
 
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Key Products:</h4>
-                      <ul className="text-sm text-gray-600 space-y-1">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                        Key Products:
+                      </h4>
+                      <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                         {look.products.slice(0, 3).map((product, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <span className="w-1.5 h-1.5 bg-rose-400 rounded-full mt-2 flex-shrink-0"></span>
@@ -340,16 +348,20 @@ export default function OccasionsPage() {
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Timing Tips:</h4>
-                    <ul className="text-sm text-gray-700 space-y-1">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                      Timing Tips:
+                    </h4>
+                    <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
                       <li>• Start with skincare 30 minutes before makeup</li>
                       <li>• Allow extra time for blending and perfecting</li>
                       <li>• Set aside time for touch-ups if needed</li>
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Product Tips:</h4>
-                    <ul className="text-sm text-gray-700 space-y-1">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                      Product Tips:
+                    </h4>
+                    <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
                       <li>• Use primer for longer-lasting makeup</li>
                       <li>• Invest in quality brushes for better application</li>
                       <li>• Keep blotting papers for quick touch-ups</li>

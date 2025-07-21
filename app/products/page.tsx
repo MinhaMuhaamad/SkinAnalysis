@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -186,14 +185,16 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-4">
               Recommended Products
             </h1>
-            <p className="text-xl text-gray-600">Curated makeup products perfect for your style and skin tone</p>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              Curated makeup products perfect for your style and skin tone
+            </p>
           </div>
 
           {/* Search and Filters */}
@@ -291,18 +292,18 @@ export default function ProductsPage() {
                       <CardContent className="p-4">
                         <div className="space-y-3">
                           <div>
-                            <h3 className="font-semibold text-lg text-gray-900">{product.name}</h3>
-                            <p className="text-sm text-gray-600">{product.brand}</p>
+                            <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{product.name}</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{product.brand}</p>
                           </div>
 
                           <div className="flex items-center gap-2">
                             <div className="flex">{renderStars(product.rating)}</div>
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
                               {product.rating} ({product.reviews} reviews)
                             </span>
                           </div>
 
-                          <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{product.description}</p>
 
                           <div className="flex flex-wrap gap-1">
                             {product.shades.slice(0, 3).map((shade) => (

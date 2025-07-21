@@ -8,26 +8,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No image data provided" }, { status: 400 })
     }
 
-    // Simulate processing time
+    // Simulate skin analysis processing
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
     // Mock analysis results
     const mockResults = {
-      skinTone: ["Fair", "Light", "Medium", "Tan", "Deep"][Math.floor(Math.random() * 5)],
-      confidence: Math.floor(Math.random() * 20) + 80, // 80-100%
-      undertone: ["Cool", "Warm", "Neutral"][Math.floor(Math.random() * 3)],
-      skinType: ["Dry", "Oily", "Combination", "Normal"][Math.floor(Math.random() * 4)],
-      recommendations: [
-        "Try warm-toned foundations for your skin undertone",
-        "Consider using a primer for better makeup longevity",
-        "Peachy blush would complement your skin tone beautifully",
-      ],
-      timestamp: new Date().toISOString(),
+      skinTone: "Medium",
+      confidence: 85,
+      skinType: "Combination",
+      concerns: ["Dryness", "Uneven tone"],
+      recommendations: ["Use a hydrating moisturizer", "Apply sunscreen daily", "Consider vitamin C serum"],
+      colorMatches: {
+        foundation: "#D4A574",
+        concealer: "#E8B887",
+        blush: "#E6A0A0",
+        lipstick: "#C67B7B",
+      },
+      analysis: {
+        brightness: 0.7,
+        contrast: 0.6,
+        saturation: 0.5,
+        temperature: "warm",
+      },
     }
 
-    return NextResponse.json(mockResults)
+    return NextResponse.json({
+      success: true,
+      data: mockResults,
+      timestamp: new Date().toISOString(),
+    })
   } catch (error) {
     console.error("Skin analysis error:", error)
-    return NextResponse.json({ error: "Analysis failed" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to analyze skin" }, { status: 500 })
   }
 }

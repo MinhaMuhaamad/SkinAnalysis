@@ -81,10 +81,14 @@ export function WebcamCapture({
     setLogs((prev) => [...prev.slice(-19), logMessage]) // Keep last 20 logs
   }, [])
 
-  // Initialize on mount
+  // Initialize on mount with delay to ensure DOM is ready
   useEffect(() => {
-    initializeSystem()
+    const initTimer = setTimeout(() => {
+      initializeSystem()
+    }, 500) // Increased delay to ensure DOM is ready
+
     return () => {
+      clearTimeout(initTimer)
       cleanup()
     }
   }, [])
@@ -104,6 +108,16 @@ export function WebcamCapture({
     addLog("🚀 Initializing camera system...")
 
     try {
+      // Wait a bit more for DOM to be fully ready
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      // Check DOM elements first
+      const videoElement = videoRef.current
+      const canvasElement = canvasRef.current
+
+      addLog(`📺 Video element: ${videoElement ? "Found" : "Not found"}`)
+      addLog(`🎨 Canvas element: ${canvasElement ? "Found" : "Not found"}`)
+
       // Check all system requirements
       const info: DebugInfo = {
         browserSupport: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
@@ -116,12 +130,12 @@ export function WebcamCapture({
         getUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
         currentURL: window.location.href,
         userAgent: navigator.userAgent,
-        videoElement: !!videoRef.current,
-        canvasElement: !!canvasRef.current,
+        videoElement: !!videoElement,
+        canvasElement: !!canvasElement,
       }
 
       setDebugInfo(info)
-      addLog(`📊 System check: Browser=${info.browserSupport}, HTTPS=${info.httpsStatus}`)
+      addLog(`📊 System check: Browser=${info.browserSupport}, HTTPS=${info.httpsStatus}, Video=${info.videoElement}`)
 
       // Validate requirements
       if (!info.browserSupport) {
@@ -130,6 +144,16 @@ export function WebcamCapture({
 
       if (!info.httpsStatus) {
         throw new Error("HTTPS required for camera access. Please use https:// or localhost.")
+      }
+
+      if (!info.videoElement) {
+        addLog("⚠️ Video element not found, but continuing initialization...")
+        // Don't throw error here, just log warning
+      }
+
+      if (!info.canvasElement) {
+        addLog("⚠️ Canvas element not found, but continuing initialization...")
+        // Don't throw error here, just log warning
       }
 
       // Initialize camera system
@@ -184,7 +208,8 @@ export function WebcamCapture({
       setAvailableDevices(videoDevices)
 
       if (videoDevices.length === 0) {
-        throw new Error("No camera devices found on this system")
+        addLog("⚠️ No camera devices found, but continuing...")
+        // Don't throw error, just log warning
       }
 
       // Select default device
@@ -197,7 +222,7 @@ export function WebcamCapture({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to get camera devices"
       addLog(`❌ Device enumeration failed: ${errorMessage}`, "error")
-      setCameraState((prev) => ({ ...prev, error: errorMessage }))
+      // Don't set error state, just log
     }
   }
 
@@ -278,13 +303,28 @@ export function WebcamCapture({
     setCameraState((prev) => ({ ...prev, isLoading: true, error: null, hasVideo: false }))
 
     try {
-      if (!videoRef.current) {
-        throw new Error("Video element not found")
+      // Wait for video element to be available
+      let videoElement = videoRef.current
+      let attempts = 0
+      const maxAttempts = 10
+
+      while (!videoElement && attempts < maxAttempts) {
+        addLog(`🔍 Waiting for video element... attempt ${attempts + 1}/${maxAttempts}`)
+        await new Promise((resolve) => setTimeout(resolve, 200))
+        videoElement = videoRef.current
+        attempts++
       }
 
-      if (!canvasRef.current) {
-        throw new Error("Canvas element not found")
+      if (!videoElement) {
+        throw new Error("Video element not available after waiting. Please refresh the page.")
       }
+
+      const canvasElement = canvasRef.current
+      if (!canvasElement) {
+        throw new Error("Canvas element not found. Please refresh the page.")
+      }
+
+      addLog("✅ Video and canvas elements confirmed")
 
       // Define camera constraints
       const constraints: MediaStreamConstraints = {
@@ -312,16 +352,10 @@ export function WebcamCapture({
       addLog(`✅ Got stream with ${stream.getVideoTracks().length} video tracks`)
 
       // Configure video element
-      const video = videoRef.current
-
-      // Clear any existing source
-      video.srcObject = null
-
-      // Set new stream
-      video.srcObject = stream
-      video.muted = true
-      video.playsInline = true
-      video.autoplay = true
+      videoElement.srcObject = stream
+      videoElement.muted = true
+      videoElement.playsInline = true
+      videoElement.autoplay = true
 
       addLog("🎬 Configuring video element...")
 
@@ -333,23 +367,23 @@ export function WebcamCapture({
 
         const onLoadedMetadata = async () => {
           try {
-            addLog(`📐 Video metadata loaded: ${video.videoWidth}x${video.videoHeight}`)
+            addLog(`📐 Video metadata loaded: ${videoElement.videoWidth}x${videoElement.videoHeight}`)
 
             clearTimeout(timeout)
             removeListeners()
 
             // Ensure video dimensions are valid
-            if (video.videoWidth === 0 || video.videoHeight === 0) {
+            if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
               throw new Error("Video has invalid dimensions")
             }
 
             // Start playback
-            await video.play()
+            await videoElement.play()
             addLog("▶️ Video playback started successfully")
 
             // Double-check video is actually playing
             setTimeout(() => {
-              if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+              if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
                 addLog("✅ Video confirmed playing with valid dimensions")
                 setCameraState((prev) => ({
                   ...prev,
@@ -361,7 +395,7 @@ export function WebcamCapture({
                 resolve()
               } else {
                 addLog(
-                  `❌ Video not ready: readyState=${video.readyState}, dimensions=${video.videoWidth}x${video.videoHeight}`,
+                  `❌ Video not ready: readyState=${videoElement.readyState}, dimensions=${videoElement.videoWidth}x${videoElement.videoHeight}`,
                   "error",
                 )
                 reject(new Error("Video not ready after play"))
@@ -389,16 +423,16 @@ export function WebcamCapture({
         }
 
         const removeListeners = () => {
-          video.removeEventListener("loadedmetadata", onLoadedMetadata)
-          video.removeEventListener("error", onError)
-          video.removeEventListener("canplay", onCanPlay)
-          video.removeEventListener("loadstart", onLoadStart)
+          videoElement.removeEventListener("loadedmetadata", onLoadedMetadata)
+          videoElement.removeEventListener("error", onError)
+          videoElement.removeEventListener("canplay", onCanPlay)
+          videoElement.removeEventListener("loadstart", onLoadStart)
         }
 
-        video.addEventListener("loadedmetadata", onLoadedMetadata)
-        video.addEventListener("error", onError)
-        video.addEventListener("canplay", onCanPlay)
-        video.addEventListener("loadstart", onLoadStart)
+        videoElement.addEventListener("loadedmetadata", onLoadedMetadata)
+        videoElement.addEventListener("error", onError)
+        videoElement.addEventListener("canplay", onCanPlay)
+        videoElement.addEventListener("loadstart", onLoadStart)
       })
 
       toast({
@@ -591,6 +625,14 @@ export function WebcamCapture({
     }
   }
 
+  const retryInitialization = () => {
+    addLog("🔄 Retrying initialization...")
+    setCameraState((prev) => ({ ...prev, error: null }))
+    setTimeout(() => {
+      initializeSystem()
+    }, 100)
+  }
+
   return (
     <Card className="bg-gradient-to-br from-gray-900/80 to-black/80 border border-purple-400/20 backdrop-blur-xl shadow-2xl">
       <CardHeader>
@@ -629,14 +671,25 @@ export function WebcamCapture({
             <Info className="w-4 h-4 mr-2" />
             {showDebug ? "Hide" : "Show"} Debug
           </Button>
-          <Button
-            onClick={() => setLogs([])}
-            variant="outline"
-            size="sm"
-            className="border-gray-600 text-gray-400 hover:bg-gray-800"
-          >
-            Clear Logs
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setLogs([])}
+              variant="outline"
+              size="sm"
+              className="border-gray-600 text-gray-400 hover:bg-gray-800"
+            >
+              Clear Logs
+            </Button>
+            <Button
+              onClick={retryInitialization}
+              variant="outline"
+              size="sm"
+              className="border-blue-600 text-blue-400 hover:bg-blue-800 bg-transparent"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry Init
+            </Button>
+          </div>
         </div>
 
         {/* Debug Panel */}
@@ -657,6 +710,18 @@ export function WebcamCapture({
                     <span className="text-gray-400">HTTPS:</span>
                     <span className={debugInfo.httpsStatus ? "text-green-400" : "text-red-400"}>
                       {debugInfo.httpsStatus ? "✅" : "❌"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Video Element:</span>
+                    <span className={debugInfo.videoElement ? "text-green-400" : "text-red-400"}>
+                      {debugInfo.videoElement ? "✅" : "❌"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Canvas Element:</span>
+                    <span className={debugInfo.canvasElement ? "text-green-400" : "text-red-400"}>
+                      {debugInfo.canvasElement ? "✅" : "❌"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -691,10 +756,26 @@ export function WebcamCapture({
           </div>
         )}
 
-        {/* Main Video Container */}
+        {/* Main Video Container - Always render video element */}
         <div className="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl overflow-hidden aspect-video border border-purple-400/20">
-          {cameraState.error ? (
-            <div className="flex items-center justify-center h-full">
+          {/* Always present video element - hidden when not active */}
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className={`w-full h-full object-cover rounded-2xl ${
+              cameraState.isActive && cameraState.hasVideo ? "block" : "hidden"
+            }`}
+            style={{
+              transform: "scaleX(-1)",
+              backgroundColor: "#000",
+            }}
+          />
+
+          {/* Error State */}
+          {cameraState.error && (
+            <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center space-y-6 max-w-md">
                 <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-2xl">
                   <AlertCircle className="h-12 w-12 text-white" />
@@ -728,12 +809,9 @@ export function WebcamCapture({
                       Request Permission
                     </Button>
                     <Button
-                      onClick={() => {
-                        setCameraState((prev) => ({ ...prev, error: null }))
-                        startCamera()
-                      }}
+                      onClick={retryInitialization}
                       variant="outline"
-                      className="border-purple-400/50 text-purple-300 hover:bg-purple-500/20"
+                      className="border-purple-400/50 text-purple-300 hover:bg-purple-500/20 bg-transparent"
                       disabled={cameraState.isLoading}
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
@@ -743,20 +821,76 @@ export function WebcamCapture({
                 </div>
               </div>
             </div>
-          ) : cameraState.isActive && cameraState.hasVideo ? (
-            <>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover rounded-2xl"
-                style={{
-                  transform: "scaleX(-1)",
-                  backgroundColor: "#000",
-                }}
-              />
+          )}
 
+          {/* Loading State */}
+          {cameraState.isLoading && !cameraState.error && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center space-y-6">
+                <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto shadow-2xl">
+                  <RefreshCw className="h-16 w-16 text-white animate-spin" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-white mb-3">Starting Camera...</p>
+                  <p className="text-gray-400 text-lg">Please wait while we access your camera</p>
+                  <p className="text-sm text-gray-500 mt-2">Check debug logs for detailed progress</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Ready State */}
+          {!cameraState.isActive && !cameraState.isLoading && !cameraState.error && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center space-y-6">
+                <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto shadow-2xl">
+                  <Video className="h-16 w-16 text-white" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-white mb-3">Ready for Virtual Try-On</p>
+                  <p className="text-gray-400 text-lg mb-6">Start your camera to begin real-time makeup application</p>
+
+                  {availableDevices.length > 1 && (
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Select Camera:</label>
+                      <select
+                        value={selectedDeviceId}
+                        onChange={(e) => setSelectedDeviceId(e.target.value)}
+                        className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                      >
+                        {availableDevices.map((device) => (
+                          <option key={device.deviceId} value={device.deviceId}>
+                            {device.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={cameraState.permission === "granted" ? startCamera : requestPermission}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+                    disabled={cameraState.isLoading}
+                  >
+                    {cameraState.isLoading ? (
+                      <RefreshCw className="mr-3 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Video className="mr-3 h-5 w-5" />
+                    )}
+                    Start Camera
+                  </Button>
+
+                  {cameraState.permission === "prompt" && (
+                    <p className="text-sm text-gray-500 mt-3">You'll be asked for camera permission</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Camera Active Overlays */}
+          {cameraState.isActive && cameraState.hasVideo && (
+            <>
               {/* Analysis Progress Overlay */}
               {isAnalyzing && (
                 <div className="absolute top-4 left-4 right-4">
@@ -811,69 +945,10 @@ export function WebcamCapture({
                 </Button>
               </div>
             </>
-          ) : cameraState.isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-6">
-                <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto shadow-2xl">
-                  <RefreshCw className="h-16 w-16 text-white animate-spin" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-white mb-3">Starting Camera...</p>
-                  <p className="text-gray-400 text-lg">Please wait while we access your camera</p>
-                  <p className="text-sm text-gray-500 mt-2">Check debug logs for detailed progress</p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-6">
-                <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto shadow-2xl">
-                  <Video className="h-16 w-16 text-white" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-white mb-3">Ready for Virtual Try-On</p>
-                  <p className="text-gray-400 text-lg mb-6">Start your camera to begin real-time makeup application</p>
-
-                  {availableDevices.length > 1 && (
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Select Camera:</label>
-                      <select
-                        value={selectedDeviceId}
-                        onChange={(e) => setSelectedDeviceId(e.target.value)}
-                        className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white"
-                      >
-                        {availableDevices.map((device) => (
-                          <option key={device.deviceId} value={device.deviceId}>
-                            {device.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  <Button
-                    onClick={cameraState.permission === "granted" ? startCamera : requestPermission}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-                    disabled={cameraState.isLoading}
-                  >
-                    {cameraState.isLoading ? (
-                      <RefreshCw className="mr-3 h-5 w-5 animate-spin" />
-                    ) : (
-                      <Video className="mr-3 h-5 w-5" />
-                    )}
-                    Start Camera
-                  </Button>
-
-                  {cameraState.permission === "prompt" && (
-                    <p className="text-sm text-gray-500 mt-3">You'll be asked for camera permission</p>
-                  )}
-                </div>
-              </div>
-            </div>
           )}
         </div>
 
-        {/* Hidden canvas for frame capture */}
+        {/* Hidden canvas for frame capture - Always present */}
         <canvas ref={canvasRef} className="hidden" />
 
         {/* Analysis Results */}

@@ -230,6 +230,11 @@ export function WebcamCapture({
         title: "Camera permission granted! 📸",
         description: "You can now start the camera.",
       })
+
+      // Automatically start camera after permission is granted
+      setTimeout(() => {
+        startCamera()
+      }, 500)
     } catch (error: any) {
       const errorMessage = getPermissionErrorMessage(error)
       addLog(`❌ Permission request failed: ${errorMessage}`, "error")
@@ -308,6 +313,11 @@ export function WebcamCapture({
 
       // Configure video element
       const video = videoRef.current
+
+      // Clear any existing source
+      video.srcObject = null
+
+      // Set new stream
       video.srcObject = stream
       video.muted = true
       video.playsInline = true
@@ -315,7 +325,7 @@ export function WebcamCapture({
 
       addLog("🎬 Configuring video element...")
 
-      // Wait for video to be ready
+      // Wait for video to be ready with better error handling
       await new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error("Video loading timeout (15 seconds)"))
@@ -323,18 +333,23 @@ export function WebcamCapture({
 
         const onLoadedMetadata = async () => {
           try {
-            addLog(`📐 Video dimensions: ${video.videoWidth}x${video.videoHeight}`)
+            addLog(`📐 Video metadata loaded: ${video.videoWidth}x${video.videoHeight}`)
 
             clearTimeout(timeout)
             removeListeners()
+
+            // Ensure video dimensions are valid
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+              throw new Error("Video has invalid dimensions")
+            }
 
             // Start playback
             await video.play()
             addLog("▶️ Video playback started successfully")
 
-            // Verify video is actually playing
+            // Double-check video is actually playing
             setTimeout(() => {
-              if (video.videoWidth > 0 && video.videoHeight > 0) {
+              if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
                 addLog("✅ Video confirmed playing with valid dimensions")
                 setCameraState((prev) => ({
                   ...prev,
@@ -343,13 +358,15 @@ export function WebcamCapture({
                   stream,
                 }))
                 startFrameCounter()
+                resolve()
               } else {
-                addLog("❌ Video playing but no valid dimensions", "error")
-                reject(new Error("Video has no valid dimensions"))
+                addLog(
+                  `❌ Video not ready: readyState=${video.readyState}, dimensions=${video.videoWidth}x${video.videoHeight}`,
+                  "error",
+                )
+                reject(new Error("Video not ready after play"))
               }
             }, 1000)
-
-            resolve()
           } catch (playError) {
             addLog(`❌ Video play error: ${playError}`, "error")
             reject(playError)
@@ -367,15 +384,21 @@ export function WebcamCapture({
           addLog("✅ Video can play event fired")
         }
 
+        const onLoadStart = () => {
+          addLog("🎬 Video load started")
+        }
+
         const removeListeners = () => {
           video.removeEventListener("loadedmetadata", onLoadedMetadata)
           video.removeEventListener("error", onError)
           video.removeEventListener("canplay", onCanPlay)
+          video.removeEventListener("loadstart", onLoadStart)
         }
 
         video.addEventListener("loadedmetadata", onLoadedMetadata)
         video.addEventListener("error", onError)
         video.addEventListener("canplay", onCanPlay)
+        video.addEventListener("loadstart", onLoadStart)
       })
 
       toast({
@@ -728,7 +751,10 @@ export function WebcamCapture({
                 playsInline
                 muted
                 className="w-full h-full object-cover rounded-2xl"
-                style={{ transform: "scaleX(-1)" }}
+                style={{
+                  transform: "scaleX(-1)",
+                  backgroundColor: "#000",
+                }}
               />
 
               {/* Analysis Progress Overlay */}

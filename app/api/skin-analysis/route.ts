@@ -11,36 +11,23 @@ export async function POST(request: NextRequest) {
     // Simulate processing time
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    // Mock analysis result
-    const mockResult = {
-      success: true,
-      skinTone: "Medium",
-      undertone: "Warm",
-      concerns: ["Uneven skin tone", "Dark circles"],
-      recommendations: {
-        foundations: ["Warm Beige Foundation", "Medium Coverage Concealer"],
-        concealers: ["Peach Corrector", "Medium Concealer"],
-        lipsticks: ["Coral Pink", "Berry Red"],
-        eyeshadows: ["Warm Browns", "Golden Tones"],
-        blushes: ["Peachy Pink", "Coral Blush"],
-        skincare: ["Vitamin C Serum", "Moisturizing Cream"],
-      },
-      confidence: 85,
-      analysis_details: {
-        average_color: [180, 140, 120],
-        brightness: 128,
-        skin_coverage: 75,
-        pixel_count: 307200,
-      },
+    // Mock analysis results
+    const mockResults = {
+      skinTone: ["Fair", "Light", "Medium", "Tan", "Deep"][Math.floor(Math.random() * 5)],
+      confidence: Math.floor(Math.random() * 20) + 80, // 80-100%
+      undertone: ["Cool", "Warm", "Neutral"][Math.floor(Math.random() * 3)],
+      skinType: ["Dry", "Oily", "Combination", "Normal"][Math.floor(Math.random() * 4)],
+      recommendations: [
+        "Try warm-toned foundations for your skin undertone",
+        "Consider using a primer for better makeup longevity",
+        "Peachy blush would complement your skin tone beautifully",
+      ],
       timestamp: new Date().toISOString(),
     }
 
-    return NextResponse.json(mockResult)
+    return NextResponse.json(mockResults)
   } catch (error) {
     console.error("Skin analysis error:", error)
-    return NextResponse.json(
-      { error: "Failed to analyze skin", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: "Analysis failed" }, { status: 500 })
   }
 }

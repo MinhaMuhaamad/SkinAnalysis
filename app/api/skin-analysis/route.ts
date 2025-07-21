@@ -1,6 +1,10 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 
-export async function POST(request: NextRequest) {
+export async function GET() {
+  return NextResponse.json({ status: "success" })
+}
+
+export async function POST(request: Request) {
   try {
     const { imageData } = await request.json()
 

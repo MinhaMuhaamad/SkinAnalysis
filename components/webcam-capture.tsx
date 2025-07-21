@@ -1,10 +1,23 @@
 "use client"
+
 import { useState, useRef, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Camera, Video, VideoOff, RefreshCw, AlertCircle, CheckCircle, Settings, Zap, Eye } from "lucide-react"
+import {
+  Camera,
+  Video,
+  VideoOff,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle,
+  Settings,
+  Zap,
+  Eye,
+  Shield,
+  Globe,
+} from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface WebcamCaptureProps {
@@ -17,6 +30,16 @@ interface WebcamCaptureProps {
 interface CameraDevice {
   deviceId: string
   label: string
+}
+
+interface DebugInfo {
+  browserSupport: boolean
+  httpsStatus: boolean
+  permissionAPI: boolean
+  mediaDevices: boolean
+  getUserMedia: boolean
+  currentURL: string
+  userAgent: string
 }
 
 export function WebcamCapture({
@@ -36,6 +59,10 @@ export function WebcamCapture({
   const [analysisProgress, setAnalysisProgress] = useState(0)
   const [lastAnalysis, setLastAnalysis] = useState<any>(null)
   const [frameCount, setFrameCount] = useState(0)
+  const [videoLoaded, setVideoLoaded] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
+  const [showDebug, setShowDebug] = useState(false)
+  const [debug, setDebug] = useState<string[]>([])
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -44,14 +71,9 @@ export function WebcamCapture({
 
   const { toast } = useToast()
 
-  // Check HTTPS requirement
-  const isHttps = typeof window !== "undefined" && window.location.protocol === "https:"
-  const isLocalhost =
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-
-  // Initialize camera on component mount
+  // Initialize debug info and camera on component mount
   useEffect(() => {
+    initializeDebugInfo()
     initializeCamera()
     return () => {
       cleanup()
@@ -69,47 +91,93 @@ export function WebcamCapture({
     return () => stopAutoCapture()
   }, [isWebcamActive, autoAnalyze, isAnalyzing, captureInterval])
 
+  const initializeDebugInfo = () => {
+    const info: DebugInfo = {
+      browserSupport: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+      httpsStatus:
+        window.location.protocol === "https:" ||
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1",
+      permissionAPI: "permissions" in navigator,
+      mediaDevices: !!navigator.mediaDevices,
+      getUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+      currentURL: window.location.href,
+      userAgent: navigator.userAgent,
+    }
+    setDebugInfo(info)
+    console.log("Debug Info:", info)
+  }
+
   const initializeCamera = async () => {
     try {
+      console.log("🎥 Initializing camera...")
+
       // Check browser support
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setCameraError("Camera not supported in this browser")
+        const error = "Camera API not supported in this browser. Please use Chrome, Firefox, Safari, or Edge."
+        console.error("❌", error)
+        setCameraError(error)
         return
       }
 
-      // Check HTTPS requirement (except localhost)
+      // Check HTTPS requirement
+      const isHttps = window.location.protocol === "https:"
+      const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+
       if (!isHttps && !isLocalhost) {
-        setCameraError("HTTPS is required for camera access. Please use a secure connection.")
+        const error = "🔒 HTTPS is required for camera access. Please use a secure connection (https://) or localhost."
+        console.error("❌", error)
+        setCameraError(error)
         return
       }
+
+      console.log("✅ Browser support and HTTPS check passed")
 
       await getAvailableDevices()
       await checkCameraPermissions()
+
+      console.log("✅ Camera initialization completed")
     } catch (error) {
-      console.error("Camera initialization error:", error)
-      setCameraError("Failed to initialize camera")
+      console.error("❌ Camera initialization error:", error)
+      setCameraError(`Failed to initialize camera: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
   }
 
   const checkCameraPermissions = async () => {
     try {
-      if ("permissions" in navigator) {
-        const result = await navigator.permissions.query({ name: "camera" as PermissionName })
-        setCameraPermission(result.state as "granted" | "denied" | "prompt")
+      console.log("🔍 Checking camera permissions...")
 
-        result.addEventListener("change", () => {
+      if ("permissions" in navigator) {
+        try {
+          const result = await navigator.permissions.query({ name: "camera" as PermissionName })
+          console.log("📋 Permission state:", result.state)
           setCameraPermission(result.state as "granted" | "denied" | "prompt")
-        })
+
+          result.addEventListener("change", () => {
+            console.log("📋 Permission state changed:", result.state)
+            setCameraPermission(result.state as "granted" | "denied" | "prompt")
+          })
+        } catch (permError) {
+          console.log("⚠️ Permission API query failed:", permError)
+          setCameraPermission("prompt")
+        }
+      } else {
+        console.log("⚠️ Permission API not supported")
+        setCameraPermission("prompt")
       }
     } catch (error) {
-      console.log("Permission API not supported")
+      console.error("❌ Permission check error:", error)
       setCameraPermission("prompt")
     }
   }
 
   const getAvailableDevices = async () => {
     try {
+      console.log("📱 Getting available devices...")
+
       const devices = await navigator.mediaDevices.enumerateDevices()
+      console.log("📱 All devices:", devices)
+
       const videoDevices = devices
         .filter((device) => device.kind === "videoinput")
         .map((device) => ({
@@ -117,7 +185,13 @@ export function WebcamCapture({
           label: device.label || `Camera ${device.deviceId.slice(0, 8)}`,
         }))
 
+      console.log("📹 Video devices:", videoDevices)
       setAvailableDevices(videoDevices)
+
+      if (videoDevices.length === 0) {
+        setCameraError("No camera devices found on this device.")
+        return
+      }
 
       if (videoDevices.length > 0 && !selectedDeviceId) {
         // Prefer front-facing camera
@@ -127,10 +201,13 @@ export function WebcamCapture({
             device.label.toLowerCase().includes("user") ||
             device.label.toLowerCase().includes("facing"),
         )
-        setSelectedDeviceId(frontCamera?.deviceId || videoDevices[0].deviceId)
+        const selectedDevice = frontCamera?.deviceId || videoDevices[0].deviceId
+        console.log("📹 Selected device:", selectedDevice)
+        setSelectedDeviceId(selectedDevice)
       }
     } catch (error) {
-      console.error("Error getting devices:", error)
+      console.error("❌ Error getting devices:", error)
+      setCameraError(`Failed to get camera devices: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
   }
 
@@ -139,13 +216,21 @@ export function WebcamCapture({
       setIsInitializing(true)
       setCameraError(null)
 
-      // Request permission by accessing camera
+      console.log("🔐 Requesting camera permission...")
+
+      // Simple permission request
       const tempStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
+        video: true,
+        audio: false,
       })
 
-      // Stop temporary stream
-      tempStream.getTracks().forEach((track) => track.stop())
+      console.log("✅ Permission granted, got stream:", tempStream)
+
+      // Stop temporary stream immediately
+      tempStream.getTracks().forEach((track) => {
+        console.log("⏹️ Stopping temporary track:", track.kind)
+        track.stop()
+      })
 
       setCameraPermission("granted")
       await getAvailableDevices()
@@ -154,17 +239,26 @@ export function WebcamCapture({
         title: "Camera permission granted! 📸",
         description: "You can now start the camera.",
       })
+
+      console.log("✅ Permission request completed successfully")
     } catch (error: any) {
-      console.error("Camera permission error:", error)
-      setCameraPermission("denied")
+      console.error("❌ Camera permission error:", error)
 
       let errorMessage = "Camera access denied. "
+
       if (error.name === "NotAllowedError") {
-        errorMessage += "Please allow camera permissions in your browser."
+        errorMessage += "Please click 'Allow' when prompted for camera access."
+        setCameraPermission("denied")
       } else if (error.name === "NotFoundError") {
         errorMessage += "No camera found on this device."
+      } else if (error.name === "NotReadableError") {
+        errorMessage += "Camera is being used by another application."
+      } else if (error.name === "OverconstrainedError") {
+        errorMessage += "Camera constraints not supported."
+      } else if (error.name === "SecurityError") {
+        errorMessage += "Camera access blocked by security policy."
       } else {
-        errorMessage += "Please check your camera settings."
+        errorMessage += `Error: ${error.message || "Unknown error"}`
       }
 
       setCameraError(errorMessage)
@@ -182,6 +276,13 @@ export function WebcamCapture({
     try {
       setIsInitializing(true)
       setCameraError(null)
+      setVideoLoaded(false)
+
+      console.log("🎬 Starting webcam...")
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera API not supported")
+      }
 
       const constraints: MediaStreamConstraints = {
         video: {
@@ -193,85 +294,52 @@ export function WebcamCapture({
         audio: false,
       }
 
-      // Use selected device if available
-      if (selectedDeviceId) {
-        constraints.video = {
-          ...constraints.video,
-          deviceId: { exact: selectedDeviceId },
-        }
-      }
-
-      console.log("Requesting camera access...")
+      // Get media stream
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-
-        await new Promise<void>((resolve, reject) => {
-          if (!videoRef.current) {
-            reject(new Error("Video element not available"))
-            return
-          }
-
-          videoRef.current.onloadedmetadata = () => {
-            if (videoRef.current) {
-              videoRef.current
-                .play()
-                .then(() => {
-                  console.log("Video playback started successfully")
-                  setIsWebcamActive(true)
-                  setCameraPermission("granted")
-                  setStream(mediaStream)
-
-                  // Start frame counter
-                  startFrameCounter()
-
-                  toast({
-                    title: "Camera activated! 📸",
-                    description: "Webcam is now streaming.",
-                  })
-
-                  resolve()
-                })
-                .catch(reject)
-            }
-          }
-
-          videoRef.current.onerror = reject
-          setTimeout(() => reject(new Error("Video loading timeout")), 10000)
-        })
-      }
-    } catch (error: any) {
-      console.error("Camera access error:", error)
-
-      let errorMessage = "Camera access failed. "
-      if (error.name === "NotAllowedError") {
-        errorMessage += "Please allow camera permissions."
-        setCameraPermission("denied")
-      } else if (error.name === "NotFoundError") {
-        errorMessage += "No camera found."
-      } else if (error.name === "NotReadableError") {
-        errorMessage += "Camera is being used by another application."
-      } else if (error.name === "OverconstrainedError") {
-        errorMessage += "Camera settings not supported."
-      } else {
-        errorMessage += error.message || "Unknown error."
+      if (!videoRef.current) {
+        throw new Error("Video element not available")
       }
 
-      setCameraError(errorMessage)
-      toast({
-        title: "Camera Error",
-        description: errorMessage,
-        variant: "destructive",
+      // Set up video element
+      videoRef.current.srcObject = mediaStream
+
+      // Wait for video to be ready
+      await new Promise<void>((resolve, reject) => {
+        if (!videoRef.current) return reject("No video element")
+
+        videoRef.current.onloadedmetadata = async () => {
+          try {
+            await videoRef.current?.play()
+            setIsWebcamActive(true)
+            setVideoLoaded(true)
+            setStream(mediaStream)
+            resolve()
+          } catch (error) {
+            reject(error)
+          }
+        }
+
+        videoRef.current.onerror = (event) => reject(event)
       })
+
+      toast({
+        title: "Camera Started",
+        description: "Your webcam is now active",
+      })
+    } catch (error: any) {
+      console.error("Camera start error:", error)
+      setCameraError(error.message || "Failed to start camera")
     } finally {
       setIsInitializing(false)
     }
-  }, [selectedDeviceId, toast])
+  }, [])
 
   const stopWebcam = useCallback(() => {
+    console.log("⏹️ Stopping webcam...")
     cleanup()
     setIsWebcamActive(false)
+    setVideoLoaded(false)
     setCameraError(null)
 
     toast({
@@ -281,8 +349,13 @@ export function WebcamCapture({
   }, [])
 
   const cleanup = () => {
+    console.log("🧹 Cleaning up camera resources...")
+
     if (stream) {
-      stream.getTracks().forEach((track) => track.stop())
+      stream.getTracks().forEach((track) => {
+        console.log("⏹️ Stopping track:", track.kind, track.label)
+        track.stop()
+      })
       setStream(null)
     }
 
@@ -308,7 +381,8 @@ export function WebcamCapture({
   }
 
   const captureFrame = useCallback(async (): Promise<string | null> => {
-    if (!videoRef.current || !canvasRef.current || !isWebcamActive) {
+    if (!videoRef.current || !canvasRef.current || !isWebcamActive || !videoLoaded) {
+      console.log("❌ Cannot capture frame - missing requirements")
       return null
     }
 
@@ -316,17 +390,23 @@ export function WebcamCapture({
     const canvas = canvasRef.current
     const ctx = canvas.getContext("2d")
 
-    if (!ctx) return null
+    if (!ctx) {
+      console.log("❌ Cannot get canvas context")
+      return null
+    }
 
     // Set canvas dimensions to match video
     canvas.width = video.videoWidth || video.clientWidth
     canvas.height = video.videoHeight || video.clientHeight
+
+    console.log("📸 Capturing frame:", canvas.width, "x", canvas.height)
 
     // Draw current video frame to canvas
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
     // Convert to base64
     const imageData = canvas.toDataURL("image/jpeg", 0.8)
+    console.log("📸 Frame captured, size:", imageData.length, "characters")
 
     // Call callback if provided
     if (onFrameCapture) {
@@ -334,12 +414,14 @@ export function WebcamCapture({
     }
 
     return imageData
-  }, [isWebcamActive, onFrameCapture])
+  }, [isWebcamActive, videoLoaded, onFrameCapture])
 
   const analyzeFrame = async (imageData: string) => {
     try {
       setIsAnalyzing(true)
       setAnalysisProgress(0)
+
+      console.log("🔍 Starting analysis...")
 
       // Simulate progress
       const progressInterval = setInterval(() => {
@@ -358,10 +440,11 @@ export function WebcamCapture({
       setAnalysisProgress(100)
 
       if (!response.ok) {
-        throw new Error(`Analysis failed: ${response.status}`)
+        throw new Error(`Analysis failed with status: ${response.status}`)
       }
 
       const result = await response.json()
+      console.log("✅ Analysis result:", result)
       setLastAnalysis(result)
 
       if (onAnalysisResult) {
@@ -373,7 +456,7 @@ export function WebcamCapture({
         description: "Skin analysis has been processed.",
       })
     } catch (error) {
-      console.error("Analysis error:", error)
+      console.error("❌ Analysis error:", error)
       toast({
         title: "Analysis failed",
         description: error instanceof Error ? error.message : "Unknown error",
@@ -410,58 +493,23 @@ export function WebcamCapture({
     }
   }
 
+  const logDebug = (message: string) => {
+    setDebug(prev => [...prev, `${new Date().toISOString()} - ${message}`]);
+    console.log(message);
+  };
+
   return (
     <Card className="bg-gradient-to-br from-gray-900/80 to-black/80 border border-purple-400/20 backdrop-blur-xl shadow-2xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-2xl">
-          <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
-            <Video className="h-6 w-6 text-white" />
-          </div>
-          Live Camera Feed
-          {isWebcamActive && (
-            <Badge variant="secondary" className="bg-green-500/20 text-green-300 border-green-400/30">
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Active ({frameCount} frames)
-            </Badge>
-          )}
-          {cameraPermission === "granted" && !isWebcamActive && (
-            <Badge variant="secondary" className="bg-blue-500/20 text-blue-300 border-blue-400/30">
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Ready
-            </Badge>
-          )}
-        </CardTitle>
-        <CardDescription className="text-gray-400 text-base">
-          Real-time webcam capture with automatic skin analysis
-        </CardDescription>
-      </CardHeader>
-
       <CardContent className="space-y-6">
-        {/* HTTPS Warning */}
-        {!isHttps && !isLocalhost && (
-          <div className="bg-red-500/10 border border-red-400/20 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-red-400" />
-              <div>
-                <h4 className="font-semibold text-red-300">HTTPS Required</h4>
-                <p className="text-sm text-red-200">Camera access requires a secure connection (HTTPS).</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Video Container */}
-        <div className="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl overflow-hidden aspect-video border border-purple-400/20">
+        {/* Video Container with improved styling */}
+        <div className="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl overflow-hidden border border-purple-400/20">
           {cameraError ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-6 max-w-md">
-                <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-2xl">
-                  <AlertCircle className="h-12 w-12 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-red-400 mb-2">Camera Error</p>
-                  <p className="text-gray-400 text-lg mb-4">{cameraError}</p>
-
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <AlertCircle className="h-12 w-12 text-red-400 mx-auto" />
+                <div className="px-4">
+                  <p className="text-lg font-semibold text-red-400 mb-2">Camera Error</p>
+                  <p className="text-gray-400 text-sm mb-4">{cameraError}</p>
                   {cameraPermission === "denied" && (
                     <div className="bg-red-500/10 border border-red-400/20 rounded-xl p-4 mb-4">
                       <h4 className="font-semibold text-red-300 mb-2">How to fix:</h4>
@@ -472,28 +520,14 @@ export function WebcamCapture({
                       </ul>
                     </div>
                   )}
-
-                  <div className="flex gap-3 justify-center">
-                    <Button
-                      onClick={requestCameraPermission}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                      disabled={isInitializing}
-                    >
-                      {isInitializing ? (
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Settings className="mr-2 h-4 w-4" />
-                      )}
-                      Request Permission
-                    </Button>
+                  <div className="flex gap-2 justify-center">
                     <Button
                       onClick={() => {
                         setCameraError(null)
                         startWebcam()
                       }}
                       variant="outline"
-                      className="border-purple-400/50 text-purple-300 hover:bg-purple-500/20"
-                      disabled={isInitializing}
+                      className="border-red-400/50 text-red-300 hover:bg-red-500/20"
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Try Again
@@ -502,132 +536,65 @@ export function WebcamCapture({
                 </div>
               </div>
             </div>
-          ) : isWebcamActive ? (
-            <>
-              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover rounded-2xl" />
-
-              {/* Analysis Progress Overlay */}
-              {isAnalyzing && (
-                <div className="absolute top-4 left-4 right-4">
-                  <div className="bg-black/50 backdrop-blur-sm rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Eye className="w-4 h-4 text-blue-400" />
-                      <span className="text-sm text-white">Analyzing skin...</span>
-                    </div>
-                    <Progress value={analysisProgress} className="h-2" />
+          ) : !isWebcamActive ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <Button
+                  onClick={startWebcam}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-6 py-3"
+                  disabled={isInitializing}
+                >
+                  {isInitializing ? (
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Video className="mr-2 h-4 w-4" />
+                  )}
+                  {isInitializing ? "Starting..." : "Start Camera"}
+                </Button>
+                {cameraPermission === "prompt" && (
+                  <p className="text-sm text-gray-500">You'll be asked for camera permission</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="relative aspect-video w-full min-h-[300px]"> {/* Added min-height */}
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                style={{
+                  transform: 'scaleX(-1)',
+                  backgroundColor: 'rgba(0,0,0,0.2)',
+                  display: isWebcamActive ? 'block' : 'none' // Ensure visibility
+                }}
+                onLoadedMetadata={() => logDebug("Video metadata loaded")}
+                onPlay={() => logDebug("Video playback started")}
+                onError={(e) => logDebug(`Video error: ${e}`)}
+              />
+              {/* Canvas overlay for makeup effects */}
+              <canvas
+                ref={canvasRef}
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                style={{
+                  mixBlendMode: 'multiply',
+                  display: isWebcamActive ? 'block' : 'none' // Ensure visibility
+                }}
+              />
+              {isWebcamActive && !videoLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50">
+                  <div className="text-center space-y-2">
+                    <RefreshCw className="h-8 w-8 animate-spin text-purple-400 mx-auto" />
+                    <p className="text-sm text-gray-300">Initializing camera...</p>
                   </div>
                 </div>
               )}
-
-              {/* Status Badges */}
-              <div className="absolute top-4 right-4 space-y-2">
-                {autoAnalyze && (
-                  <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 border-purple-400/30">
-                    <Zap className="w-3 h-3 mr-1" />
-                    Auto-analyze
-                  </Badge>
-                )}
-                {lastAnalysis && (
-                  <Badge variant="secondary" className="bg-green-500/20 text-green-300 border-green-400/30">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Analysis ready
-                  </Badge>
-                )}
-              </div>
-
-              {/* Controls */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
-                <Button
-                  onClick={captureAndAnalyze}
-                  className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-lg"
-                  disabled={isAnalyzing}
-                >
-                  {isAnalyzing ? (
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Camera className="mr-2 h-4 w-4" />
-                  )}
-                  {isAnalyzing ? "Analyzing..." : "Analyze"}
-                </Button>
-
-                <Button
-                  onClick={stopWebcam}
-                  variant="outline"
-                  className="border-red-400/50 text-red-300 hover:bg-red-500/20 bg-black/50 backdrop-blur-sm"
-                >
-                  <VideoOff className="mr-2 h-4 w-4" />
-                  Stop
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-6">
-                <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto shadow-2xl">
-                  <Video className="h-16 w-16 text-white" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-white mb-3">Ready for Analysis</p>
-                  <p className="text-gray-400 text-lg mb-6">Start your camera to begin real-time skin analysis</p>
-
-                  {availableDevices.length > 1 && (
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Select Camera:</label>
-                      <select
-                        value={selectedDeviceId}
-                        onChange={(e) => setSelectedDeviceId(e.target.value)}
-                        className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white"
-                      >
-                        {availableDevices.map((device) => (
-                          <option key={device.deviceId} value={device.deviceId}>
-                            {device.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  <Button
-                    onClick={startWebcam}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-                    disabled={isInitializing || cameraPermission === "denied"}
-                  >
-                    {isInitializing ? (
-                      <RefreshCw className="mr-3 h-5 w-5 animate-spin" />
-                    ) : (
-                      <Video className="mr-3 h-5 w-5" />
-                    )}
-                    {isInitializing ? "Starting..." : "Start Camera"}
-                  </Button>
-
-                  {cameraPermission === "prompt" && (
-                    <p className="text-sm text-gray-500 mt-3">You'll be asked for camera permission</p>
-                  )}
-                </div>
-              </div>
             </div>
           )}
         </div>
 
-        {/* Hidden canvas for frame capture */}
-        <canvas ref={canvasRef} className="hidden" />
-
-        {/* Analysis Results */}
-        {lastAnalysis && (
-          <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl p-4 border border-green-400/20">
-            <h4 className="font-semibold text-green-300 mb-2">Latest Analysis</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-400">Skin Tone:</span>
-                <span className="text-white ml-2">{lastAnalysis.skinTone || "Unknown"}</span>
-              </div>
-              <div>
-                <span className="text-gray-400">Confidence:</span>
-                <span className="text-white ml-2">{lastAnalysis.confidence || 0}%</span>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Rest of your existing controls */}
       </CardContent>
     </Card>
   )

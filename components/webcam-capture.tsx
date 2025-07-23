@@ -148,12 +148,10 @@ export function WebcamCapture({
 
       if (!info.videoElement) {
         addLog("⚠️ Video element not found, but continuing initialization...")
-        // Don't throw error here, just log warning
       }
 
       if (!info.canvasElement) {
         addLog("⚠️ Canvas element not found, but continuing initialization...")
-        // Don't throw error here, just log warning
       }
 
       // Initialize camera system
@@ -209,7 +207,6 @@ export function WebcamCapture({
 
       if (videoDevices.length === 0) {
         addLog("⚠️ No camera devices found, but continuing...")
-        // Don't throw error, just log warning
       }
 
       // Select default device
@@ -222,7 +219,6 @@ export function WebcamCapture({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to get camera devices"
       addLog(`❌ Device enumeration failed: ${errorMessage}`, "error")
-      // Don't set error state, just log
     }
   }
 

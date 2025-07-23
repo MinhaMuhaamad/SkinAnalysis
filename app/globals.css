@@ -97,6 +97,52 @@
   }
 }
 
+/* Animated Grid Backgrounds */
+@keyframes grid-move {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(40px, 40px);
+  }
+}
+
+@keyframes grid-fade {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animated-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(236, 72, 153, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236, 72, 153, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: grid-move 20s linear infinite, grid-fade 4s ease-in-out infinite;
+}
+
+.dark .animated-grid {
+  background-image: linear-gradient(rgba(139, 92, 246, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.2) 1px, transparent 1px);
+}
+
+.animated-grid-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(236, 72, 153, 0.2) 1px, transparent 1px);
+  background-size: 30px 30px;
+  animation: grid-move 15s linear infinite reverse, grid-fade 3s ease-in-out infinite;
+}
+
+.dark .animated-grid-dots {
+  background-image: radial-gradient(circle, rgba(59, 130, 246, 0.3) 1px, transparent 1px);
+}
+
 /* Enhanced Animations */
 @keyframes gradient-shift {
   0%,

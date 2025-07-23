@@ -29,6 +29,10 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-hero">
       {/* Enhanced Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Animated Background Grid */}
+        <div className="animated-grid"></div>
+        <div className="animated-grid-dots"></div>
+
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-pink-400/20 to-purple-400/20 rounded-full blur-xl animate-float"></div>
@@ -39,35 +43,35 @@ export default function HomePage() {
         </div>
 
         <div className="container-premium z-10 relative">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8 text-center lg:text-left">
-              <div className="space-y-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6 text-center lg:text-left">
+              <div className="space-y-4">
                 <Badge
                   variant="secondary"
-                  className="glass-morphism border-pink-400/30 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 text-lg px-6 py-3 animate-fade-in-up"
+                  className="glass-morphism border-pink-400/30 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 text-base px-5 py-2 animate-fade-in-up"
                 >
-                  <Zap className="w-5 h-5 mr-2" />
+                  <Zap className="w-4 h-4 mr-2" />
                   AI-Powered Beauty Revolution
                 </Badge>
 
-                <h1 className="text-6xl lg:text-8xl font-bold font-poppins leading-tight animate-fade-in-up delay-200">
-                  <span className="text-shimmer block mb-4">Transform</span>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold font-poppins leading-tight animate-fade-in-up delay-200">
+                  <span className="text-shimmer block mb-2">Transform</span>
                   <span className="text-gradient block">Your Beauty</span>
                 </h1>
 
-                <p className="text-xl lg:text-2xl text-foreground/80 leading-relaxed max-w-2xl animate-fade-in-up delay-400">
+                <p className="text-lg lg:text-xl text-foreground/80 leading-relaxed max-w-2xl animate-fade-in-up delay-400">
                   Experience the future of makeup with AI-powered virtual try-ons, personalized recommendations, and
                   professional tutorials that adapt to your unique style.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start animate-fade-in-up delay-600">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up delay-600">
                 <Link href="/skin-analysis">
                   <Button
                     size="lg"
-                    className="btn-premium px-12 py-4 text-lg font-semibold shadow-2xl hover:shadow-pink-500/25 group"
+                    className="btn-premium px-8 py-3 text-base font-semibold shadow-2xl hover:shadow-pink-500/25 group"
                   >
-                    <Wand2 className="mr-3 h-6 w-6 group-hover:rotate-12 transition-transform duration-300" />
+                    <Wand2 className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
                     Start AI Analysis
                   </Button>
                 </Link>
@@ -75,26 +79,26 @@ export default function HomePage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="glass-morphism border-2 border-pink-400/50 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 hover:border-pink-400 px-12 py-4 text-lg font-semibold group bg-transparent"
+                    className="glass-morphism border-2 border-pink-400/50 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 hover:border-pink-400 px-8 py-3 text-base font-semibold group bg-transparent"
                   >
-                    <Play className="mr-3 h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
+                    <Play className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
                     Virtual Try-On
                   </Button>
                 </Link>
               </div>
 
-              <div className="flex items-center justify-center lg:justify-start gap-12 pt-8 animate-fade-in-up delay-800">
+              <div className="flex items-center justify-center lg:justify-start gap-8 pt-6 animate-fade-in-up delay-800">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gradient font-poppins">100K+</div>
-                  <div className="text-sm text-muted-foreground font-medium">Beauty Enthusiasts</div>
+                  <div className="text-2xl font-bold text-gradient font-poppins">100K+</div>
+                  <div className="text-xs text-muted-foreground font-medium">Beauty Enthusiasts</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gradient font-poppins">2M+</div>
-                  <div className="text-sm text-muted-foreground font-medium">Looks Created</div>
+                  <div className="text-2xl font-bold text-gradient font-poppins">2M+</div>
+                  <div className="text-xs text-muted-foreground font-medium">Looks Created</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gradient font-poppins">99.9%</div>
-                  <div className="text-sm text-muted-foreground font-medium">Satisfaction Rate</div>
+                  <div className="text-2xl font-bold text-gradient font-poppins">99.9%</div>
+                  <div className="text-xs text-muted-foreground font-medium">Satisfaction Rate</div>
                 </div>
               </div>
             </div>
@@ -103,10 +107,10 @@ export default function HomePage() {
               <div className="relative z-10">
                 <div className="relative">
                   <Image
-                    src="/placeholder.svg?height=700&width=500"
+                    src="/placeholder.svg?height=600&width=450"
                     alt="AI Makeup Analysis"
-                    width={500}
-                    height={700}
+                    width={450}
+                    height={600}
                     className="rounded-3xl shadow-2xl border border-white/20 dark:border-white/10"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 via-transparent to-pink-900/20 rounded-3xl"></div>
@@ -114,14 +118,14 @@ export default function HomePage() {
               </div>
 
               {/* Floating UI Elements */}
-              <div className="absolute -top-6 -right-6 glass-morphism p-4 rounded-2xl shadow-2xl border border-pink-400/20 animate-float">
-                <Eye className="h-8 w-8 text-pink-500" />
+              <div className="absolute -top-4 -right-4 glass-morphism p-3 rounded-2xl shadow-2xl border border-pink-400/20 animate-float">
+                <Eye className="h-6 w-6 text-pink-500" />
               </div>
-              <div className="absolute -bottom-6 -left-6 glass-morphism p-4 rounded-2xl shadow-2xl border border-purple-400/20 animate-float delay-1000">
-                <Smile className="h-8 w-8 text-purple-500" />
+              <div className="absolute -bottom-4 -left-4 glass-morphism p-3 rounded-2xl shadow-2xl border border-purple-400/20 animate-float delay-1000">
+                <Smile className="h-6 w-6 text-purple-500" />
               </div>
-              <div className="absolute top-1/2 -right-8 glass-morphism p-3 rounded-xl shadow-xl border border-green-400/20 animate-float delay-2000">
-                <Sparkles className="h-6 w-6 text-green-500" />
+              <div className="absolute top-1/2 -right-6 glass-morphism p-2 rounded-xl shadow-xl border border-green-400/20 animate-float delay-2000">
+                <Sparkles className="h-5 w-5 text-green-500" />
               </div>
             </div>
           </div>
@@ -136,25 +140,25 @@ export default function HomePage() {
       </section>
 
       {/* Enhanced Features Section */}
-      <section className="py-32 relative">
+      <section className="py-24 relative">
         <div className="container-premium relative z-10">
-          <div className="text-center mb-20">
+          <div className="text-center mb-16">
             <Badge
               variant="secondary"
-              className="glass-morphism border-pink-400/30 text-pink-600 dark:text-pink-400 mb-6 text-lg px-6 py-2 animate-fade-in-up"
+              className="glass-morphism border-pink-400/30 text-pink-600 dark:text-pink-400 mb-6 text-base px-5 py-2 animate-fade-in-up"
             >
               Revolutionary Features
             </Badge>
-            <h2 className="text-5xl lg:text-6xl font-bold font-poppins mb-6 animate-fade-in-up delay-200">
+            <h2 className="text-4xl lg:text-5xl font-bold font-poppins mb-6 animate-fade-in-up delay-200">
               <span className="text-shimmer">Everything You Need</span>
             </h2>
-            <p className="text-xl text-foreground/80 max-w-3xl mx-auto leading-relaxed animate-fade-in-up delay-400">
+            <p className="text-lg text-foreground/80 max-w-3xl mx-auto leading-relaxed animate-fade-in-up delay-400">
               Our AI-powered platform combines cutting-edge technology with beauty expertise to deliver personalized
               experiences that transform how you approach makeup.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
                 icon: Camera,
@@ -206,18 +210,18 @@ export default function HomePage() {
               },
             ].map((feature, index) => (
               <Card key={index} className={`card-premium group animate-fade-in-up delay-${feature.delay}`}>
-                <CardHeader className="pb-4">
+                <CardHeader className="pb-3">
                   <div
-                    className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg animate-pulse-glow`}
+                    className={`w-12 h-12 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg animate-pulse-glow`}
                   >
-                    <feature.icon className="h-8 w-8 text-white" />
+                    <feature.icon className="h-6 w-6 text-white" />
                   </div>
-                  <CardTitle className="text-2xl font-bold font-poppins group-hover:text-pink-500 transition-colors">
+                  <CardTitle className="text-xl font-bold font-poppins group-hover:text-pink-500 transition-colors">
                     {feature.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-foreground/70 text-base leading-relaxed">
+                  <CardDescription className="text-foreground/70 text-sm leading-relaxed">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
@@ -228,9 +232,9 @@ export default function HomePage() {
       </section>
 
       {/* Enhanced Stats Section */}
-      <section className="py-20 relative">
+      <section className="py-16 relative">
         <div className="container-premium">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-4 gap-6">
             {[
               { icon: Users, label: "Active Users", value: "500K+", color: "text-blue-500" },
               { icon: Award, label: "Awards Won", value: "25+", color: "text-yellow-500" },
@@ -238,10 +242,10 @@ export default function HomePage() {
               { icon: Shield, label: "Data Security", value: "100%", color: "text-purple-500" },
             ].map((stat, index) => (
               <Card key={index} className={`card-premium text-center animate-fade-in-up delay-${index * 100}`}>
-                <CardContent className="p-8">
-                  <stat.icon className={`h-12 w-12 ${stat.color} mx-auto mb-4`} />
-                  <div className="text-4xl font-bold font-poppins text-gradient mb-2">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
+                <CardContent className="p-6">
+                  <stat.icon className={`h-10 w-10 ${stat.color} mx-auto mb-3`} />
+                  <div className="text-3xl font-bold font-poppins text-gradient mb-1">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground font-medium">{stat.label}</div>
                 </CardContent>
               </Card>
             ))}
@@ -250,15 +254,15 @@ export default function HomePage() {
       </section>
 
       {/* Enhanced Testimonials Section */}
-      <section className="py-32 relative overflow-hidden">
+      <section className="py-24 relative overflow-hidden">
         <div className="container-premium relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold font-poppins mb-6 animate-fade-in-up">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold font-poppins mb-6 animate-fade-in-up">
               <span className="text-shimmer">Loved by Beauty Enthusiasts</span>
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {[
               {
                 name: "Sarah Johnson",
@@ -266,7 +270,7 @@ export default function HomePage() {
                 content:
                   "This app completely transformed my makeup routine. The AI recommendations are incredibly accurate!",
                 rating: 5,
-                image: "/placeholder.svg?height=80&width=80",
+                image: "/placeholder.svg?height=60&width=60",
                 gradient: "from-cyan-500/10 to-blue-500/10",
                 border: "border-cyan-400/20",
               },
@@ -276,7 +280,7 @@ export default function HomePage() {
                 content:
                   "As a makeup artist, I recommend this to all my clients. The virtual try-on technology is revolutionary.",
                 rating: 5,
-                image: "/placeholder.svg?height=80&width=80",
+                image: "/placeholder.svg?height=60&width=60",
                 gradient: "from-purple-500/10 to-pink-500/10",
                 border: "border-purple-400/20",
               },
@@ -285,30 +289,30 @@ export default function HomePage() {
                 role: "Beauty Blogger",
                 content: "The personalized tutorials helped me master techniques I never thought I could achieve!",
                 rating: 5,
-                image: "/placeholder.svg?height=80&width=80",
+                image: "/placeholder.svg?height=60&width=60",
                 gradient: "from-green-500/10 to-emerald-500/10",
                 border: "border-green-400/20",
               },
             ].map((testimonial, index) => (
               <Card key={index} className={`card-premium animate-fade-in-up delay-${index * 200}`}>
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
+                <CardContent className="p-6">
+                  <div className="flex items-center mb-3">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
-                  <p className="text-foreground/80 text-lg mb-6 leading-relaxed">"{testimonial.content}"</p>
+                  <p className="text-foreground/80 text-sm mb-4 leading-relaxed">"{testimonial.content}"</p>
                   <div className="flex items-center">
                     <Image
                       src={testimonial.image || "/placeholder.svg"}
                       alt={testimonial.name}
-                      width={50}
-                      height={50}
-                      className="rounded-full mr-4"
+                      width={40}
+                      height={40}
+                      className="rounded-full mr-3"
                     />
                     <div>
-                      <p className="font-semibold font-poppins">{testimonial.name}</p>
-                      <p className="text-muted-foreground text-sm">{testimonial.role}</p>
+                      <p className="font-semibold font-poppins text-sm">{testimonial.name}</p>
+                      <p className="text-muted-foreground text-xs">{testimonial.role}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -319,39 +323,39 @@ export default function HomePage() {
       </section>
 
       {/* Enhanced CTA Section */}
-      <section className="py-32 relative">
+      <section className="py-20 relative">
         <div className="absolute inset-0 bg-gradient-accent opacity-90"></div>
         <div className="absolute inset-0 bg-black/20"></div>
 
         <div className="container-premium text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-5xl lg:text-6xl font-bold font-poppins text-white mb-8 leading-tight animate-fade-in-up">
+            <h2 className="text-4xl lg:text-5xl font-bold font-poppins text-white mb-6 leading-tight animate-fade-in-up">
               Ready to Discover Your
               <br />
               <span className="text-yellow-300">Perfect Look?</span>
             </h2>
-            <p className="text-xl text-white/90 mb-12 leading-relaxed animate-fade-in-up delay-200">
+            <p className="text-lg text-white/90 mb-8 leading-relaxed animate-fade-in-up delay-200">
               Join thousands of beauty enthusiasts who have transformed their makeup routine with our AI-powered
               platform. Start your personalized beauty journey today.
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in-up delay-400">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
               <Link href="/auth/signup">
                 <Button
                   size="lg"
-                  className="bg-white text-purple-600 hover:bg-gray-100 px-12 py-4 text-lg font-bold shadow-2xl hover:shadow-white/25 transition-all duration-300 transform hover:scale-105 group"
+                  className="bg-white text-purple-600 hover:bg-gray-100 px-10 py-3 text-base font-bold shadow-2xl hover:shadow-white/25 transition-all duration-300 transform hover:scale-105 group"
                 >
                   Get Started Free
-                  <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" />
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </Button>
               </Link>
               <Link href="/skin-analysis">
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-2 border-white text-white hover:bg-white hover:text-purple-600 px-12 py-4 text-lg font-bold backdrop-blur-sm transition-all duration-300 transform hover:scale-105 bg-transparent group"
+                  className="border-2 border-white text-white hover:bg-white hover:text-purple-600 px-10 py-3 text-base font-bold backdrop-blur-sm transition-all duration-300 transform hover:scale-105 bg-transparent group"
                 >
                   Try AI Analysis
-                  <Sparkles className="ml-3 h-6 w-6 group-hover:rotate-12 transition-transform duration-300" />
+                  <Sparkles className="ml-2 h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
                 </Button>
               </Link>
             </div>

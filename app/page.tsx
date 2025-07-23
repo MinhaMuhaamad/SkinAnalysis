@@ -107,17 +107,17 @@ export default function HomePage() {
               <div className="relative z-10">
                 <div className="relative">
                   <Image
-                    src="/placeholder.svg?height=600&width=450"
+                    src="/woman-8277925_1280.jpg"
                     alt="AI Makeup Analysis"
                     width={450}
                     height={600}
+                    priority // Add priority since it's a hero image
                     className="rounded-3xl shadow-2xl border border-white/20 dark:border-white/10"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 via-transparent to-pink-900/20 rounded-3xl"></div>
                 </div>
               </div>
-
-              {/* Floating UI Elements */}
+               {/* Floating UI Elements */}
               <div className="absolute -top-4 -right-4 glass-morphism p-3 rounded-2xl shadow-2xl border border-pink-400/20 animate-float">
                 <Eye className="h-6 w-6 text-pink-500" />
               </div>

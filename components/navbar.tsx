@@ -4,162 +4,117 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Palette, User, Moon, Sun, Sparkles, Zap } from "lucide-react"
+import { Menu, Moon, Sun, Sparkles } from "lucide-react"
 import { useTheme } from "next-themes"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const { setTheme, theme } = useTheme()
+  const [isOpen, setIsOpen] = useState(false)
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const navigation = [
+  if (!mounted) {
+    return null
+  }
+
+  const navItems = [
+    { name: "Home", href: "/" },
     { name: "Skin Analysis", href: "/skin-analysis" },
     { name: "Virtual Try-On", href: "/virtual-tryOn" },
     { name: "Lookbook", href: "/lookbook" },
-    { name: "Occasions", href: "/occasions" },
     { name: "Products", href: "/products" },
+    { name: "Occasions", href: "/occasions" },
   ]
 
   return (
-    <nav className="sticky top-0 z-50 w-full glass-morphism border-b border-white/10 dark:border-white/5">
-      <div className="container-premium">
-        <div className="flex h-20 items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-3 group">
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-accent rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-pink-500/25 transition-all duration-300 animate-pulse-glow">
-                  <Palette className="h-7 w-7 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center animate-float">
-                  <Sparkles className="h-3 w-3 text-white" />
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-3xl font-bold font-poppins text-shimmer">MakeupAI</span>
-                <span className="text-xs text-muted-foreground font-medium">Beauty Revolution</span>
-              </div>
-            </Link>
-          </div>
+    <nav className="navbar-transparent">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2 group">
+            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+              MakeupAI
+            </span>
+          </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navigation.map((item, index) => (
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground transition-all duration-300 relative group rounded-lg hover:bg-white/10 dark:hover:bg-white/5 animate-fade-in-down delay-${index * 100}`}
+                className="text-foreground/80 hover:text-foreground transition-colors duration-300 font-medium hover:scale-105 transform"
               >
                 {item.name}
-                <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-gradient-accent group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
             ))}
           </div>
 
-          <div className="flex items-center space-x-3">
-            {mounted && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                className="relative overflow-hidden group hover:bg-white/10 dark:hover:bg-white/5 transition-all duration-300 animate-fade-in-down delay-500"
-              >
-                <Sun className="h-5 w-5 rotate-0 scale-100 transition-all duration-500 dark:-rotate-90 dark:scale-0 text-orange-500" />
-                <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all duration-500 dark:rotate-0 dark:scale-100 text-blue-400" />
-                <span className="sr-only">Toggle theme</span>
-                <div className="absolute inset-0 bg-gradient-accent opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="glass-professional border-0 hover:bg-white/10"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+            <Link href="/auth/login">
+              <Button variant="ghost" className="glass-professional border-0 hover:bg-white/10">
+                Login
               </Button>
-            )}
+            </Link>
+            <Link href="/auth/signup">
+              <Button className="cta-professional px-6 py-2 text-sm">Sign Up</Button>
+            </Link>
+          </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative overflow-hidden group hover:bg-white/10 dark:hover:bg-white/5 transition-all duration-300 animate-fade-in-down delay-600"
-                >
-                  <User className="h-5 w-5" />
-                  <div className="absolute inset-0 bg-gradient-accent opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="glass-morphism border-white/20 dark:border-white/10 animate-scale-in"
-              >
-                <DropdownMenuItem asChild>
-                  <Link href="/auth/login" className="cursor-pointer">
-                    Login
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/auth/signup" className="cursor-pointer">
-                    Sign Up
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Mobile menu */}
+          {/* Mobile Menu */}
+          <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild className="md:hidden">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative overflow-hidden group hover:bg-white/10 dark:hover:bg-white/5 transition-all duration-300 animate-fade-in-down delay-700"
-                >
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="glass-professional border-0">
                   <Menu className="h-5 w-5" />
-                  <div className="absolute inset-0 bg-gradient-accent opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                 </Button>
               </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="w-[300px] sm:w-[400px] glass-morphism border-white/20 dark:border-white/10"
-              >
+              <SheetContent side="right" className="glass-professional border-l border-white/20">
                 <div className="flex flex-col space-y-6 mt-8">
-                  <div className="flex items-center space-x-3 pb-6 border-b border-white/20 dark:border-white/10">
-                    <div className="w-10 h-10 bg-gradient-accent rounded-xl flex items-center justify-center">
-                      <Zap className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gradient">MakeupAI</p>
-                      <p className="text-xs text-muted-foreground">Beauty Revolution</p>
-                    </div>
-                  </div>
-
-                  {navigation.map((item, index) => (
+                  {navItems.map((item) => (
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`text-lg font-medium hover:text-pink-500 transition-colors duration-300 animate-fade-in-right delay-${(index + 1) * 100}`}
                       onClick={() => setIsOpen(false)}
+                      className="text-foreground/80 hover:text-foreground transition-colors duration-300 font-medium text-lg"
                     >
                       {item.name}
                     </Link>
                   ))}
-
-                  <div className="pt-6 border-t border-white/20 dark:border-white/10 space-y-4">
-                    <Link
-                      href="/auth/login"
-                      className="block text-lg font-medium hover:text-pink-500 transition-colors duration-300 animate-fade-in-right delay-700"
-                      onClick={() => setIsOpen(false)}
+                  <div className="flex items-center space-x-4 pt-6 border-t border-white/20">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                      className="glass-professional border-0"
                     >
-                      Login
+                      {theme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                      {theme === "dark" ? "Light" : "Dark"}
+                    </Button>
+                  </div>
+                  <div className="flex flex-col space-y-3">
+                    <Link href="/auth/login" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="w-full glass-professional border-0">
+                        Login
+                      </Button>
                     </Link>
-                    <Link
-                      href="/auth/signup"
-                      className="block text-lg font-medium hover:text-pink-500 transition-colors duration-300 animate-fade-in-right delay-800"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Sign Up
+                    <Link href="/auth/signup" onClick={() => setIsOpen(false)}>
+                      <Button className="w-full cta-professional">Sign Up</Button>
                     </Link>
                   </div>
                 </div>

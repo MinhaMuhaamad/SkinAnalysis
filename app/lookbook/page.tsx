@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { MakeupTransformationModal } from "@/components/makeup-transformation-modal"
 import { BookOpen, Search, Heart, Share, Calendar, Eye, Trash2, Plus, Filter, TrendingUp } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -19,6 +20,7 @@ interface SavedLook {
   dateCreated: string
   isFavorite: boolean
   tags: string[]
+  style: string
 }
 
 export default function LookbookPage() {
@@ -27,6 +29,8 @@ export default function LookbookPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [visibleLooks, setVisibleLooks] = useState(6)
   const [savedLooks, setSavedLooks] = useState<SavedLook[]>([])
+  const [selectedLook, setSelectedLook] = useState<SavedLook | null>(null)
+  const [isTransformModalOpen, setIsTransformModalOpen] = useState(false)
 
   // Simulate loading data
   useEffect(() => {
@@ -38,68 +42,74 @@ export default function LookbookPage() {
         {
           id: "1",
           name: "Romantic Date Night",
-          image: "/placeholder.svg?height=300&width=300",
+          image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop&crop=face",
           occasion: "Date Night",
           mood: "Romantic",
           products: ["Rose Gold Eyeshadow", "Pink Nude Lipstick", "Light Foundation"],
           dateCreated: "2024-01-15",
           isFavorite: true,
           tags: ["romantic", "soft", "pink"],
+          style: "romantic",
         },
         {
           id: "2",
           name: "Professional Meeting",
-          image: "/placeholder.svg?height=300&width=300",
+          image: "https://images.unsplash.com/photo-1594824388853-2c5899d87b98?w=400&h=400&fit=crop&crop=face",
           occasion: "Work",
           mood: "Confident",
           products: ["Neutral Eyeshadow", "Coral Lipstick", "Medium Coverage Foundation"],
           dateCreated: "2024-01-10",
           isFavorite: false,
           tags: ["professional", "neutral", "confident"],
+          style: "professional",
         },
         {
           id: "3",
           name: "Girls Night Out",
-          image: "/placeholder.svg?height=300&width=300",
+          image: "https://images.unsplash.com/photo-1583195764036-6dc248ac07d9?w=400&h=400&fit=crop&crop=face",
           occasion: "Party",
           mood: "Bold",
           products: ["Smoky Gray Eyeshadow", "Classic Red Lipstick", "Full Coverage Foundation"],
           dateCreated: "2024-01-08",
           isFavorite: true,
           tags: ["bold", "dramatic", "party"],
+          style: "bold",
         },
         {
           id: "4",
           name: "Wedding Guest",
-          image: "/placeholder.svg?height=300&width=300",
+          image: "https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?w=400&h=400&fit=crop&crop=face",
           occasion: "Wedding",
           mood: "Elegant",
           products: ["Purple Glam Eyeshadow", "Berry Bold Lipstick", "Light Foundation"],
           dateCreated: "2024-01-05",
           isFavorite: false,
           tags: ["elegant", "formal", "purple"],
+          style: "elegant",
         },
         {
           id: "5",
           name: "Casual Day Out",
-          image: "/placeholder.svg?height=300&width=300",
+          image: "https://images.unsplash.com/photo-1544005313-944130467556?w=400&h=400&fit=crop&crop=face",
           occasion: "Casual",
           mood: "Fresh",
           products: ["Natural Eyeshadow", "Tinted Lip Balm", "BB Cream"],
           dateCreated: "2024-01-03",
           isFavorite: false,
           tags: ["natural", "casual", "fresh"],
+          style: "natural",
         },
         {
           id: "6",
           name: "Festival Vibes",
-          image: "/placeholder.svg?height=300&width=300",
+          image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop&crop=face",
           occasion: "Festival",
           mood: "Creative",
           products: ["Colorful Eyeshadow", "Glitter Lipstick", "Highlighter"],
           dateCreated: "2024-01-01",
           isFavorite: true,
           tags: ["creative", "colorful", "festival"],
+          style: "colorful",
         },
       ])
       setIsLoading(false)
@@ -137,6 +147,16 @@ export default function LookbookPage() {
 
   const toggleFavorite = (id: string) => {
     setSavedLooks((prev) => prev.map((look) => (look.id === id ? { ...look, isFavorite: !look.isFavorite } : look)))
+  }
+
+  const openTransformationModal = (look: SavedLook) => {
+    setSelectedLook(look)
+    setIsTransformModalOpen(true)
+  }
+
+  const closeTransformationModal = () => {
+    setSelectedLook(null)
+    setIsTransformModalOpen(false)
   }
 
   if (isLoading) {
@@ -295,6 +315,7 @@ export default function LookbookPage() {
                       size="icon"
                       variant="secondary"
                       className="h-8 w-8 glass-morphism hover:bg-white/20 shadow-lg transition-all duration-300 transform hover:scale-110"
+                      onClick={() => openTransformationModal(look)}
                     >
                       <Share className="h-3 w-3 text-foreground/60" />
                     </Button>
@@ -366,6 +387,7 @@ export default function LookbookPage() {
                         size="sm"
                         variant="outline"
                         className="glass-morphism border-white/20 hover:bg-red-500/20 hover:border-red-400 hover:text-red-400 transition-all duration-300 bg-transparent"
+                        onClick={() => openTransformationModal(look)}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -408,6 +430,14 @@ export default function LookbookPage() {
           </div>
         )}
       </div>
+      {/* Makeup Transformation Modal */}
+      {isTransformModalOpen && selectedLook && (
+        <MakeupTransformationModal
+          look={selectedLook} 
+          onClose={closeTransformationModal}
+        />
+      )}
     </div>
   )
 }
+

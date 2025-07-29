@@ -21,7 +21,6 @@ export function Navbar() {
   }
 
   const navItems = [
-    { name: "Home", href: "/" },
     { name: "Skin Analysis", href: "/skin-analysis" },
     { name: "Virtual Try-On", href: "/virtual-tryOn" },
     { name: "Lookbook", href: "/lookbook" },

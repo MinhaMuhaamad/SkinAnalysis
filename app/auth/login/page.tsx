@@ -11,18 +11,65 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Eye, EyeOff, Mail, Lock, Sparkles } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { theme } = useTheme()
+  const router = useRouter()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!email || !password) return
+
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast({
+          title: "Welcome Back! ✨",
+          description: "You have successfully logged in.",
+        })
+        
+        // Save auth token to local storage
+        localStorage.setItem("authToken", data.token)
+        
+        // Redirect to homepage
+        router.push("/")
+      } else {
+        toast({
+          title: "Login Failed",
+          description: data.message || "Invalid email or password.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Connection Error",
+        description: "Unable to connect to the login service. Check that your server is running.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -76,6 +123,8 @@ export default function LoginPage() {
                   type="email"
                   placeholder="Enter your email"
                   className="pl-10 glass-professional border-white/20 bg-transparent"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -92,6 +141,8 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   className="pl-10 pr-10 glass-professional border-white/20 bg-transparent"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
                 <button
@@ -114,7 +165,7 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <Button type="submit" className="w-full cta-professional" disabled={isLoading}>
+            <Button type="submit" className="w-full cta-professional" disabled={isLoading || !email.trim() || !password}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>

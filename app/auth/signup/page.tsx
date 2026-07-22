@@ -12,21 +12,92 @@ import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Mail, Lock, User, Sparkles } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SignupPage() {
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [agreedToTerms, setAgreedToTerms] = useState(true)
   const { theme } = useTheme()
+  const router = useRouter()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!agreedToTerms) return
+    if (!name || !email || !password || !confirmPassword) return
+
+    if (!agreedToTerms) {
+      toast({
+        title: "Terms Agreement Required",
+        description: "Please agree to the Terms of Service and Privacy Policy to continue.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match. Please try again.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (password.length < 8) {
+      toast({
+        title: "Weak Password",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
+
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast({
+          title: "Account Created! 🎉",
+          description: "Welcome to MakeupAI! Please log in with your credentials.",
+        })
+        router.push("/auth/login")
+      } else {
+        toast({
+          title: "Signup Failed",
+          description: data.message || "Failed to create account. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Connection Error",
+        description: "Unable to connect to the authentication service. Make sure your server is running.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -80,6 +151,8 @@ export default function SignupPage() {
                   type="text"
                   placeholder="Enter your full name"
                   className="pl-10 glass-professional border-white/20 bg-transparent"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   required
                 />
               </div>
@@ -96,6 +169,8 @@ export default function SignupPage() {
                   type="email"
                   placeholder="Enter your email"
                   className="pl-10 glass-professional border-white/20 bg-transparent"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -112,6 +187,8 @@ export default function SignupPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a password"
                   className="pl-10 pr-10 glass-professional border-white/20 bg-transparent"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
                 <button
@@ -135,6 +212,8 @@ export default function SignupPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm your password"
                   className="pl-10 pr-10 glass-professional border-white/20 bg-transparent"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                 />
                 <button
@@ -148,11 +227,12 @@ export default function SignupPage() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox
+              <input
                 id="terms"
+                type="checkbox"
                 checked={agreedToTerms}
-                onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
-                className="border-white/20"
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="rounded border-white/20 w-4 h-4 bg-transparent cursor-pointer accent-pink-500"
               />
               <Label htmlFor="terms" className="text-sm text-foreground/70 cursor-pointer">
                 I agree to the{" "}
@@ -166,7 +246,11 @@ export default function SignupPage() {
               </Label>
             </div>
 
-            <Button type="submit" className="w-full cta-professional" disabled={isLoading || !agreedToTerms}>
+            <Button 
+              type="submit" 
+              className="w-full cta-professional" 
+              disabled={isLoading || !name.trim() || !email.trim() || !password || !confirmPassword}
+            >
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>

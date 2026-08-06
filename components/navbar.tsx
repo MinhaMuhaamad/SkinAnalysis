@@ -4,17 +4,47 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Moon, Sun, Sparkles } from "lucide-react"
+import { Menu, Moon, Sun, Sparkles, User as UserIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 
 export function Navbar() {
   const [mounted, setMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const { theme, setTheme } = useTheme()
+  const [user, setUser] = useState<{ firstName: string; lastName: string } | null>(null)
 
   useEffect(() => {
     setMounted(true)
+    const fetchUser = async () => {
+      const token = localStorage.getItem("authToken")
+      if (!token) return
+
+      try {
+        const response = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.user) {
+            setUser(data.user)
+          }
+        } else {
+          localStorage.removeItem("authToken")
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err)
+      }
+    }
+    fetchUser()
   }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken")
+    setUser(null)
+    window.location.reload()
+  }
 
   if (!mounted) {
     return null
@@ -65,14 +95,32 @@ export function Navbar() {
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            <Link href="/auth/login">
-              <Button variant="ghost" className="glass-professional border-0 hover:bg-white/10">
-                Login
-              </Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button className="cta-professional px-6 py-2 text-sm">Sign Up</Button>
-            </Link>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium text-foreground/80 flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                  <UserIcon className="h-4 w-4 text-pink-400" />
+                  Hi, {user.firstName}
+                </span>
+                <Button 
+                  onClick={handleLogout} 
+                  variant="ghost" 
+                  className="glass-professional border-0 hover:bg-red-500/10 hover:text-red-400"
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link href="/auth/login">
+                  <Button variant="ghost" className="glass-professional border-0 hover:bg-white/10">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/auth/signup">
+                  <Button className="cta-professional px-6 py-2 text-sm">Sign Up</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu */}
@@ -107,14 +155,32 @@ export function Navbar() {
                     </Button>
                   </div>
                   <div className="flex flex-col space-y-3">
-                    <Link href="/auth/login" onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost" className="w-full glass-professional border-0">
-                        Login
-                      </Button>
-                    </Link>
-                    <Link href="/auth/signup" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full cta-professional">Sign Up</Button>
-                    </Link>
+                    {user ? (
+                      <>
+                        <div className="text-base font-semibold text-foreground/90 flex items-center gap-2 px-3 py-2 border-b border-white/10 mb-2">
+                          <UserIcon className="h-5 w-5 text-pink-400" />
+                          Hi, {user.firstName} {user.lastName}
+                        </div>
+                        <Button 
+                          onClick={() => { setIsOpen(false); handleLogout(); }} 
+                          variant="ghost" 
+                          className="w-full glass-professional border-0 hover:bg-red-500/10 hover:text-red-400"
+                        >
+                          Logout
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/auth/login" onClick={() => setIsOpen(false)}>
+                          <Button variant="ghost" className="w-full glass-professional border-0">
+                            Login
+                          </Button>
+                        </Link>
+                        <Link href="/auth/signup" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full cta-professional">Sign Up</Button>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
               </SheetContent>

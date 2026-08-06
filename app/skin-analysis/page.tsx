@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
+import Link from "next/link"
 
 interface SkinAnalysisResult {
   success?: boolean
@@ -85,6 +86,9 @@ export default function SkinAnalysisPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [history, setHistory] = useState<SkinAnalysisResult[]>([])
+
   // Check API status
   const checkApiStatus = async () => {
     try {
@@ -125,6 +129,36 @@ export default function SkinAnalysisPage() {
 
   useEffect(() => {
     checkApiStatus()
+
+    const checkAuthAndLoadHistory = async () => {
+      const token = localStorage.getItem("authToken")
+      if (!token) {
+        setIsAuthenticated(false)
+        return
+      }
+
+      setIsAuthenticated(true)
+      try {
+        const response = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.user) {
+            const sortedAnalyses = (data.user.skinAnalyses || []).sort(
+              (a: any, b: any) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
+            )
+            setHistory(sortedAnalyses)
+          }
+        }
+      } catch (err) {
+        console.error("Error loading analysis history:", err)
+      }
+    }
+
+    checkAuthAndLoadHistory()
   }, [])
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -256,7 +290,7 @@ export default function SkinAnalysisPage() {
         return
       }
 
-      setTimeout(() => {
+      setTimeout(async () => {
         setAnalysisResult(result)
         setIsAnalyzing(false)
 
@@ -264,6 +298,41 @@ export default function SkinAnalysisPage() {
           title: "Python Analysis Complete! ✨",
           description: `Analysis completed with ${result.confidence}% confidence using FastAPI backend`,
         })
+
+        // Save analysis to history if user is authenticated
+        const token = localStorage.getItem("authToken")
+        if (token) {
+          try {
+            const saveResponse = await fetch("/api/auth/save-analysis", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                skinTone: result.skinTone,
+                undertone: result.undertone,
+                concerns: result.concerns,
+                recommendations: result.recommendations,
+                confidence: result.confidence,
+                faceQuality: result.faceQuality,
+                analysisId: result.analysisId
+              })
+            })
+            if (saveResponse.ok) {
+              const saveResult = await saveResponse.json()
+              if (saveResult.success && saveResult.analysis) {
+                setHistory(prev => [saveResult.analysis, ...prev])
+                toast({
+                  title: "Analysis Saved! 💾",
+                  description: "This analysis report has been saved to your profile history."
+                })
+              }
+            }
+          } catch (saveError) {
+            console.error("Failed to save skin analysis:", saveError)
+          }
+        }
       }, 600)
     } catch (error: any) {
       clearInterval(progressInterval)
@@ -685,6 +754,116 @@ export default function SkinAnalysisPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Analysis History Section */}
+          {isAuthenticated ? (
+            <Card className="mt-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-rose-400/20 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-2xl">
+                  <div className="p-2 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg">
+                    <Activity className="h-6 w-6 text-white" />
+                  </div>
+                  Your Skin Analysis History
+                </CardTitle>
+                <CardDescription className="text-gray-400 text-base">
+                  Track your skin health and recommendations from past analyses
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {history.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-lg">No past analyses found.</p>
+                    <p className="text-sm text-gray-400 mt-1">Upload a photo above to generate your first analysis report!</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {history.map((item, index) => {
+                      const dateStr = item.timestamp 
+                        ? new Date(item.timestamp).toLocaleDateString(undefined, { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : "Unknown Date";
+                      return (
+                        <div 
+                          key={item.analysisId || index} 
+                          onClick={() => {
+                            setAnalysisResult(item);
+                            setAnalysisError(null);
+                            setSelectedImage(null); // Clear preview to indicate we are viewing a historic report
+                            toast({
+                              title: "Loaded Saved Analysis",
+                              description: `Report from ${dateStr} loaded.`
+                            });
+                            // Scroll up to results card
+                            window.scrollTo({ top: 200, behavior: 'smooth' });
+                          }}
+                          className="p-5 bg-gray-900/40 rounded-xl border border-white/5 hover:border-rose-400/30 hover:bg-rose-500/5 cursor-pointer transition-all duration-300 group"
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <span className="text-xs text-gray-400 font-mono">ID: {item.analysisId}</span>
+                            <Badge variant="outline" className="border-rose-500/20 text-rose-300 text-xs">
+                              {item.confidence}% Conf.
+                            </Badge>
+                          </div>
+                          
+                          <div className="space-y-2 mb-4">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Skin Tone:</span>
+                              <span className="font-medium text-white">{item.skinTone}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Undertone:</span>
+                              <span className="font-medium text-white">{item.undertone}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1 mb-4 max-h-[60px] overflow-hidden">
+                            {item.concerns.map((concern, idx) => (
+                              <Badge key={idx} variant="secondary" className="bg-white/5 text-gray-300 text-xs px-2 py-0.5 border-0">
+                                {concern}
+                              </Badge>
+                            ))}
+                          </div>
+
+                          <div className="text-xs text-gray-500 border-t border-white/5 pt-3 group-hover:text-rose-300 transition-colors">
+                            {dateStr}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="mt-12 bg-gradient-to-br from-gray-800/40 to-gray-900/40 border border-white/10 backdrop-blur-sm p-8 text-center">
+              <div className="max-w-md mx-auto space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-rose-500/20 to-pink-500/20 rounded-full flex items-center justify-center mx-auto">
+                  <Shield className="h-8 w-8 text-rose-400" />
+                </div>
+                <h3 className="text-2xl font-bold">Track Your Skin History</h3>
+                <p className="text-gray-400 text-base">
+                  Create an account or log in to automatically save your skin analysis reports, keep track of recommendations, and compare changes over time.
+                </p>
+                <div className="flex justify-center gap-4 pt-2">
+                  <Link href="/auth/login">
+                    <Button variant="outline" className="border-rose-400/50 text-rose-200 hover:bg-rose-500/20">
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signup">
+                    <Button className="bg-gradient-to-r from-rose-500 to-pink-500">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </div>

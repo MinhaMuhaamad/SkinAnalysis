@@ -150,3 +150,91 @@ export const login = async (req, res) => {
     });
   }
 };
+
+/**
+ * Get current user profile (with skin analyses history)
+ * GET /api/auth/me
+ */
+export const getMe = async (req, res) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: req.user._id,
+        firstName: req.user.firstName,
+        lastName: req.user.lastName,
+        email: req.user.email,
+        skinAnalyses: req.user.skinAnalyses || []
+      }
+    });
+  } catch (error) {
+    console.error("❌ getMe controller error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error retrieving profile.",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Save skin analysis to user profile
+ * POST /api/auth/save-analysis
+ */
+export const saveAnalysis = async (req, res) => {
+  try {
+    const { skinTone, undertone, concerns, recommendations, confidence, faceQuality, analysisId } = req.body;
+
+    if (!skinTone || !undertone) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required skin analysis parameters (skinTone and undertone)."
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found."
+      });
+    }
+
+    const newAnalysis = {
+      skinTone,
+      undertone,
+      concerns: concerns || [],
+      recommendations: {
+        foundations: recommendations?.foundations || [],
+        concealers: recommendations?.concealers || [],
+        lipsticks: recommendations?.lipsticks || [],
+        eyeshadows: recommendations?.eyeshadows || [],
+        blushes: recommendations?.blushes || [],
+        skincare: recommendations?.skincare || []
+      },
+      confidence: confidence || 0,
+      faceQuality: faceQuality || 0,
+      analysisId: analysisId || Math.random().toString(36).substring(2, 10).toUpperCase(),
+      timestamp: new Date()
+    };
+
+    user.skinAnalyses.push(newAnalysis);
+    await user.save();
+
+    console.log(`📝 Skin analysis saved successfully for user: ${user.email}`);
+
+    return res.status(201).json({
+      success: true,
+      message: "Skin analysis saved successfully to your profile!",
+      analysis: newAnalysis
+    });
+  } catch (error) {
+    console.error("❌ saveAnalysis controller error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error saving skin analysis.",
+      error: error.message
+    });
+  }
+};
+

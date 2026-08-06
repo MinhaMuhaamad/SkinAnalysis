@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { connectDB } from "../../config/database"
-import User from "../../models/User"
-import { verifyRefreshToken, generateTokens } from "../../middleware/auth"
+import { connectDB } from "../../../config/database"
+import User from "../../../models/User"
+import { verifyRefreshToken, generateTokens } from "../../../middleware/auth"
 
 export async function POST(request: NextRequest) {
   try {

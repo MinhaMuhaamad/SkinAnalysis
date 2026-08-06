@@ -365,7 +365,7 @@ export async function POST(request: NextRequest) {
       result = await runPythonAnalysis(imageData)
       console.log("API: MediaPipe analysis completed successfully")
     } catch (pythonError) {
-      console.warn("API: Python analysis failed, using fallback:", pythonError.message)
+      console.warn("API: Python analysis failed, using fallback:", pythonError instanceof Error ? pythonError.message : String(pythonError))
       // Fall back to JavaScript analysis
       result = generateFallbackAnalysis(imageData)
     }

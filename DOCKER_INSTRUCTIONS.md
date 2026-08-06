@@ -1,14 +1,4 @@
-# Running MongoDB and Mongo Express with Docker
 
-This guide explains how to spin up a **MongoDB** database and a **Mongo Express** web-based administration interface using Docker Desktop.
-
----
-
-## Why Docker Compose?
-Instead of a single `Dockerfile` (which is typically used to package a *single* custom application), running multiple pre-built services like MongoDB and Mongo Express together is done using **Docker Compose** (`docker-compose.yml`). 
-This keeps the database and its web GUI isolated, yet connected to each other on a shared virtual network.
-
----
 
 ## Credentials Configuration
 The configuration in [docker-compose.yml](file:///c:/Users/SAMEED/Desktop/Skin_Analysis/SkinAnalysis/docker-compose.yml) uses the following default credentials:

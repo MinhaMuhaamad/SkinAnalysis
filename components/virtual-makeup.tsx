@@ -115,12 +115,11 @@ export function MakeupOverlay({ landmarks, selectedMakeup, videoRef }: MakeupOve
   }
 
   const drawEyeshadow = (ctx: CanvasRenderingContext2D, landmarks: number[][], width: number, height: number) => {
-    // Left eye landmarks
     const leftEye = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246]
     // Right eye landmarks
-    const rightEye = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398][
-      (leftEye, rightEye)
-    ].forEach((eyeLandmarks) => {
+    const rightEye = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398]
+
+    ;[leftEye, rightEye].forEach((eyeLandmarks) => {
       ctx.beginPath()
       eyeLandmarks.forEach((idx, i) => {
         if (idx < landmarks.length) {
@@ -140,9 +139,9 @@ export function MakeupOverlay({ landmarks, selectedMakeup, videoRef }: MakeupOve
     const leftCheek = [
       116, 117, 118, 119, 120, 121, 126, 142, 36, 205, 206, 207, 213, 192, 147, 187, 207, 213, 192, 147,
     ]
-    const rightCheek = [345, 346, 347, 348, 349, 350, 451, 452, 453, 464, 435, 410, 454, 323, 361, 340][
-      (leftCheek, rightCheek)
-    ].forEach((cheekLandmarks) => {
+    const rightCheek = [345, 346, 347, 348, 349, 350, 451, 452, 453, 464, 435, 410, 454, 323, 361, 340]
+
+    ;[leftCheek, rightCheek].forEach((cheekLandmarks) => {
       const centerX =
         cheekLandmarks.reduce((sum, idx) => {
           return idx < landmarks.length ? sum + landmarks[idx][0] * width : sum

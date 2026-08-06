@@ -336,7 +336,7 @@ export function WebcamCapture({
       // Use selected device if available
       if (selectedDeviceId) {
         constraints.video = {
-          ...constraints.video,
+          ...(constraints.video as MediaTrackConstraints),
           deviceId: { exact: selectedDeviceId },
         }
         addLog(`📹 Using device: ${selectedDeviceId}`)

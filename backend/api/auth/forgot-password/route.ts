@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { connectDB } from "../../config/database"
-import User from "../../models/User"
-import { sendEmail, generatePasswordResetEmailHTML } from "../../services/emailService"
+import { connectDB } from "../../../config/database"
+import User from "../../../models/User"
+import { sendEmail, generatePasswordResetEmailHTML } from "../../../services/emailService"
 
 export async function POST(request: NextRequest) {
   try {

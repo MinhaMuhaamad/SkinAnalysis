@@ -284,7 +284,7 @@ export default function ProductsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center space-y-8">
           <div className="relative">
             <div className="w-24 h-24 border-4 border-pink-200 dark:border-pink-800 border-t-pink-600 rounded-full animate-spin mx-auto"></div>
@@ -303,7 +303,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary">
+    <div className="min-h-screen bg-transparent">
       {/* Enhanced Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-accent opacity-10 animate-gradient-shift"></div>

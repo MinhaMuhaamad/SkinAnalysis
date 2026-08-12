@@ -354,15 +354,7 @@ export default function SkinAnalysisPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-950 via-black to-gray-950 text-white">
-      {/* Background Image with Overlay */}
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 opacity-45 pointer-events-none"
-        style={{ 
-          backgroundImage: `url('/images/skin-bg.jpg')`,
-          filter: 'brightness(0.3) contrast(1.15) blur(2px)' 
-        }} 
-      />
+    <div className="min-h-screen relative overflow-hidden bg-transparent text-white">
 
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">

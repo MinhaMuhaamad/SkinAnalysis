@@ -51,7 +51,7 @@ export default function RealTimeAnalysisPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+    <div className="min-h-screen bg-transparent text-white relative overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-black/60 to-rose-900/40"></div>

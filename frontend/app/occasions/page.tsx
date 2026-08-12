@@ -269,7 +269,7 @@ export default function OccasionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary">
+    <div className="min-h-screen bg-transparent">
       {/* Enhanced Hero Section with Different Animated Grid */}
       <div className="relative overflow-hidden">
         {/* Different Animated Grid Pattern */}

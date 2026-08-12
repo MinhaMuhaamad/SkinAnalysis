@@ -891,7 +891,7 @@ export default function VirtualTryOnPage() {
   const hasEnabledMakeup = Object.values(makeupSettings).some((s) => s.enabled);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white relative z-0">
+    <div className="min-h-screen bg-transparent text-white relative z-0">
       {/* Background Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
         <div className="absolute top-24 left-1/4 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl animate-pulse"></div>

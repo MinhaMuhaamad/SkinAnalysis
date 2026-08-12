@@ -161,7 +161,7 @@ export default function LookbookPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-primary flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center space-y-6">
           <div className="relative">
             <div className="w-20 h-20 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin mx-auto"></div>
@@ -180,7 +180,7 @@ export default function LookbookPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary">
+    <div className="min-h-screen bg-transparent">
       {/* Enhanced Hero Section with Animated Grid */}
       <div className="relative overflow-hidden py-16">
         {/* Animated Grid Background */}

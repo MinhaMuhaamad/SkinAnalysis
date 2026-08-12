@@ -102,7 +102,7 @@ export default function SignupPage() {
 
   return (
     <div
-      className={`min-h-screen relative flex items-center justify-center p-4 overflow-hidden ${
+      className={`min-h-screen relative flex items-center justify-center lg:justify-end lg:pr-32 p-4 overflow-hidden ${
         theme === "dark" ? "hero-background-dark" : "hero-background-light"
       } animated-hero-bg`}
     >
@@ -110,10 +110,29 @@ export default function SignupPage() {
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500"
         style={{ 
-          backgroundImage: `url('/images/auth-bg.png')`,
+          backgroundImage: `url('/images/auth-bg.jpg')`,
           filter: theme === 'dark' ? 'brightness(0.25) contrast(1.1) blur(4px)' : 'brightness(0.85) contrast(0.95) blur(4px)' 
         }} 
       />
+
+      {/* Left side brand logo/slogan (visible only on large screens) */}
+      <div className="hidden lg:flex flex-col justify-center items-start space-y-4 max-w-lg absolute left-32 top-1/2 transform -translate-y-1/2 z-10 select-none">
+        <div className="flex items-center space-x-2">
+          <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+            <Sparkles className="w-7 h-7 text-white" />
+          </div>
+          <span className="text-3xl font-extrabold tracking-wider bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+            MakeupAI
+          </span>
+        </div>
+        <h1 className="text-5xl font-extrabold leading-tight tracking-tight text-foreground drop-shadow-md">
+          Discover Your <br />
+          <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">True Beauty</span>
+        </h1>
+        <p className="text-lg text-foreground/85 leading-relaxed max-w-sm">
+          Join our AI-powered skin analysis and virtual try-on platform to customize your perfect look.
+        </p>
+      </div>
 
       {/* Floating Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
@@ -131,7 +150,7 @@ export default function SignupPage() {
         ))}
       </div>
 
-      <Card className="w-full max-w-md glass-professional border-white/20 relative z-10">
+      <Card className="w-full max-w-md glass-professional !bg-white/15 dark:!bg-black/40 backdrop-blur-2xl border-white/20 relative z-10 shadow-2xl">
         <CardHeader className="text-center space-y-4">
           <div className="flex items-center justify-center space-x-2">
             <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl flex items-center justify-center">

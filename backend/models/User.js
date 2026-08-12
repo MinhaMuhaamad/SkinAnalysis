@@ -43,6 +43,19 @@ const userSchema = new mongoose.Schema({
     analysisId: { type: String },
     timestamp: { type: Date, default: Date.now }
   }],
+  savedLooks: [{
+    beforeImage: { type: String, required: true },
+    afterImage: { type: String, required: true },
+    makeupSettings: {
+      lipstick: { enabled: Boolean, color: String, intensity: Number },
+      eyeshadow: { enabled: Boolean, color: String, intensity: Number },
+      blush: { enabled: Boolean, color: String, intensity: Number },
+      foundation: { enabled: Boolean, color: String, intensity: Number },
+      eyeliner: { enabled: Boolean, color: String, intensity: Number, thickness: Number },
+      eyebrow: { enabled: Boolean, color: String, intensity: Number }
+    },
+    timestamp: { type: Date, default: Date.now }
+  }],
   createdAt: {
     type: Date,
     default: Date.now,

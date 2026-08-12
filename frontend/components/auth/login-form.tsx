@@ -1,7 +1,5 @@
 "use client"
-
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +17,9 @@ export function LoginForm() {
     email: "",
     password: "",
     rememberMe: false,
+    firstName: "",
+    lastName: "",
+    subscribeNewsletter: false,
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -35,6 +36,7 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("Form submitted:", formData)
     setIsLoading(true)
 
     try {
@@ -51,14 +53,21 @@ export function LoginForm() {
       })
 
       const data = await response.json()
+      console.log("API response:", { status: response.status, data })
 
       if (response.ok) {
+        try {
+          localStorage.setItem("authToken", data.token)
+          console.log("Token set in localStorage")
+        } catch (error) {
+          console.error("Failed to set localStorage:", error)
+        }
         toast({
           title: "Welcome back! ✨",
           description: "You have successfully logged in.",
         })
-        localStorage.setItem("authToken", data.token)
         router.push("/")
+        console.log("Redirecting to /")
       } else {
         toast({
           title: "Login failed",
@@ -67,12 +76,14 @@ export function LoginForm() {
         })
       }
     } catch (error) {
+      console.error("Fetch error:", error)
       toast({
         title: "Connection error",
         description: "Unable to connect to server. Please try again.",
         variant: "destructive",
       })
     } finally {
+      console.log("Resetting isLoading")
       setIsLoading(false)
     }
   }
@@ -83,7 +94,6 @@ export function LoginForm() {
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/60 via-black/70 to-cyan-900/60"></div>
       </div>
-
       {/* Floating Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 rounded-full blur-xl animate-pulse"></div>

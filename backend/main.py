@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -9,12 +9,23 @@ from typing import Dict, List, Any
 import io
 from PIL import Image
 import base64
+import sys
+import os
+
+# Add parent path to allow scripts imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend")))
+from scripts.realtime_makeup_engine import RealtimeMakeupEngine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Skin Analysis API", version="1.0.0")
+
+# Pre-warm the makeup engine globally once
+logger.info("💄 Initializing and warming up RealtimeMakeupEngine...")
+makeup_engine = RealtimeMakeupEngine()
+logger.info("✅ RealtimeMakeupEngine ready in memory!")
 
 # Configure CORS
 app.add_middleware(
@@ -232,6 +243,40 @@ async def health_check():
         "version": "1.0.0",
         "timestamp": "2024-01-01T00:00:00Z"
     }
+
+@app.websocket("/ws/makeup")
+async def websocket_makeup(websocket: WebSocket):
+    await websocket.accept()
+    logger.info("🔌 WebSocket makeup client connected")
+    frame_counter = 0
+    try:
+        while True:
+            # Receive frame data as JSON
+            data = await websocket.receive_json()
+            image_data = data.get("image")
+            settings = data.get("settings", {})
+            
+            frame_counter += 1
+            if not image_data:
+                logger.warning(f"⚠️ WS Frame #{frame_counter}: No image data received")
+                await websocket.send_json({"success": False, "error": "No image data provided"})
+                continue
+                
+            logger.info(f"📥 WS Frame #{frame_counter}: Received frame, size: {len(image_data)} bytes")
+            
+            # Apply makeup combinations via pre-warmed engine
+            try:
+                result = makeup_engine.apply_makeup_combination(image_data, settings)
+                logger.info(f"📤 WS Frame #{frame_counter}: Makeup applied, success: {result.get('success')}")
+                await websocket.send_json(result)
+            except Exception as e:
+                logger.error(f"❌ WS Frame #{frame_counter}: Error processing frame: {str(e)}", exc_info=True)
+                await websocket.send_json({"success": False, "error": f"Frame processing error: {str(e)}"})
+                
+    except WebSocketDisconnect:
+        logger.info("🔌 WebSocket makeup client disconnected")
+    except Exception as e:
+        logger.error(f"WebSocket connection error: {str(e)}")
 
 @app.post("/analyze")
 async def analyze_skin(file: UploadFile = File(...)):

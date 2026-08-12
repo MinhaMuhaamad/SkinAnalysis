@@ -164,7 +164,8 @@ export const getMe = async (req, res) => {
         firstName: req.user.firstName,
         lastName: req.user.lastName,
         email: req.user.email,
-        skinAnalyses: req.user.skinAnalyses || []
+        skinAnalyses: req.user.skinAnalyses || [],
+        savedLooks: req.user.savedLooks || []
       }
     });
   } catch (error) {
@@ -237,4 +238,87 @@ export const saveAnalysis = async (req, res) => {
     });
   }
 };
+
+/**
+ * Save captured virtual try-on look (Before/After images & configuration)
+ * POST /api/auth/save-look
+ */
+export const saveLook = async (req, res) => {
+  try {
+    const { beforeImage, afterImage, makeupSettings } = req.body;
+
+    if (!beforeImage || !afterImage) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required look parameters (beforeImage and afterImage)."
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found."
+      });
+    }
+
+    const newLook = {
+      beforeImage,
+      afterImage,
+      makeupSettings: {
+        lipstick: {
+          enabled: !!makeupSettings?.lipstick?.enabled,
+          color: makeupSettings?.lipstick?.color || "#DC143C",
+          intensity: makeupSettings?.lipstick?.intensity || 80
+        },
+        eyeshadow: {
+          enabled: !!makeupSettings?.eyeshadow?.enabled,
+          color: makeupSettings?.eyeshadow?.color || "#8B7355",
+          intensity: makeupSettings?.eyeshadow?.intensity || 60
+        },
+        blush: {
+          enabled: !!makeupSettings?.blush?.enabled,
+          color: makeupSettings?.blush?.color || "#FFB6C1",
+          intensity: makeupSettings?.blush?.intensity || 40
+        },
+        foundation: {
+          enabled: !!makeupSettings?.foundation?.enabled,
+          color: makeupSettings?.foundation?.color || "#E8C5A0",
+          intensity: makeupSettings?.foundation?.intensity || 30
+        },
+        eyeliner: {
+          enabled: !!makeupSettings?.eyeliner?.enabled,
+          color: makeupSettings?.eyeliner?.color || "#000000",
+          intensity: makeupSettings?.eyeliner?.intensity || 90,
+          thickness: makeupSettings?.eyeliner?.thickness || 2
+        },
+        eyebrow: {
+          enabled: !!makeupSettings?.eyebrow?.enabled,
+          color: makeupSettings?.eyebrow?.color || "#8B4513",
+          intensity: makeupSettings?.eyebrow?.intensity || 50
+        }
+      },
+      timestamp: new Date()
+    };
+
+    user.savedLooks.push(newLook);
+    await user.save();
+
+    console.log(`📝 Captured look saved successfully for user: ${user.email}`);
+
+    return res.status(201).json({
+      success: true,
+      message: "Before & After look saved successfully to your profile!",
+      look: newLook
+    });
+  } catch (error) {
+    console.error("❌ saveLook controller error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error saving captured look.",
+      error: error.message
+    });
+  }
+};
+
 

@@ -34,7 +34,7 @@ const models = [
 	{
 		id: 4,
 		name: "Evening Elegance",
-		image: "/images/hero/woman-8277925_1280.jpg",
+		image: "/images/hero/woman-8277925_1280.png",
 		category: "Evening",
 		description: "Sophisticated evening look",
 	},
@@ -89,6 +89,13 @@ export default function HeroSection() {
 				theme === "dark" ? "hero-background-dark" : "hero-background-light"
 			} animated-hero-bg`}
 		>
+			{/* Blurred Background Image */}
+			<div 
+				className="absolute inset-0 z-0 bg-cover bg-center opacity-30 blur-[40px] scale-105 pointer-events-none transition-all duration-500"
+				style={{ 
+					backgroundImage: `url('/images/hero-bg.png')`,
+				}} 
+			/>
 			{/* Floating Background Elements */}
 			<div className="absolute inset-0 overflow-hidden pointer-events-none">
 				{[...Array(8)].map((_, i) => (
@@ -180,7 +187,7 @@ export default function HeroSection() {
 							onMouseLeave={() => setIsHovered(false)}
 						>
 							{models.map((model, index) => {
-								const rotation = index * 72 // 360 / 5 models
+								const rotation = index * (360 / models.length)
 								return (
 									<div
 										key={model.id}

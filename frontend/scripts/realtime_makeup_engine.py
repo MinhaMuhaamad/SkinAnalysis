@@ -154,7 +154,7 @@ class RealtimeMakeupEngine:
     def apply_lipstick(self, image, landmarks, color_hex, intensity=0.8):
         """Apply realistic lipstick with proper blending"""
         height, width = image.shape[:2]
-        color_rgb = self.hex_to_rgb(color_hex)
+        color_bgr = self.hex_to_rgb(color_hex)[::-1]
         
         # Create lip mask
         lip_points = []
@@ -177,22 +177,20 @@ class RealtimeMakeupEngine:
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
         mask = cv2.GaussianBlur(mask, (5, 5), 0)
         
-        # Create colored overlay
-        overlay = image.copy()
-        overlay[mask > 0] = [int(c * intensity + image[mask > 0][:, i] * (1 - intensity)) 
-                           for i, c in enumerate(color_rgb)]
-        
-        # Blend with original image
+        # Blend with original image using vectorized numpy
         mask_normalized = mask.astype(np.float32) / 255.0
-        mask_3d = np.stack([mask_normalized] * 3, axis=2)
         
-        result = image * (1 - mask_3d * intensity) + overlay * mask_3d * intensity
+        result = image.copy()
+        for i in range(3):
+            result[:, :, i] = (image[:, :, i] * (1 - mask_normalized * intensity) + 
+                             color_bgr[i] * mask_normalized * intensity)
+            
         return result.astype(np.uint8)
     
     def apply_eyeshadow(self, image, landmarks, color_hex, intensity=0.6):
         """Apply eyeshadow with gradient blending"""
         height, width = image.shape[:2]
-        color_rgb = self.hex_to_rgb(color_hex)
+        color_bgr = self.hex_to_rgb(color_hex)[::-1]
         
         result = image.copy()
         
@@ -215,36 +213,50 @@ class RealtimeMakeupEngine:
             center_x = np.mean(eye_points[:, 0])
             center_y = np.mean(eye_points[:, 1])
             
-            # Create eyeshadow mask with gradient
-            mask = np.zeros((height, width), dtype=np.float32)
+            # Bounding box for eyeshadow region
+            y_min = max(0, int(center_y - 40))
+            y_max = min(height, int(center_y + 20))
+            x_min = max(0, int(center_x - 50))
+            x_max = min(width, int(center_x + 50))
             
-            # Create elliptical gradient for natural eyeshadow look
-            for y in range(max(0, int(center_y - 40)), min(height, int(center_y + 20))):
-                for x in range(max(0, int(center_x - 50)), min(width, int(center_x + 50))):
-                    # Calculate distance from eye center
-                    dx = (x - center_x) / 50.0
-                    dy = (y - center_y + 10) / 30.0  # Shift upward for eyeshadow
-                    distance = np.sqrt(dx*dx + dy*dy)
-                    
-                    if distance <= 1.0:
-                        # Create gradient effect
-                        alpha = max(0, 1 - distance) * intensity
-                        if y < center_y:  # Apply more intensity above the eye
-                            alpha *= 1.5
-                        mask[y, x] = min(1.0, alpha)
+            if y_max <= y_min or x_max <= x_min:
+                continue
+                
+            # Create meshgrid
+            y_indices, x_indices = np.ogrid[y_min:y_max, x_min:x_max]
             
-            # Apply color with mask
+            # Calculate distance from eye center using vectorized numpy
+            dx = (x_indices - center_x) / 50.0
+            dy = (y_indices - center_y + 10) / 30.0
+            dist = np.sqrt(dx**2 + dy**2)
+            
+            # Create gradient mask
+            alpha = np.maximum(0.0, 1.0 - dist) * intensity
+            
+            # Apply more intensity above the eye (where y < center_y)
+            y_grid = np.arange(y_min, y_max)[:, np.newaxis]
+            above_eye = y_grid < center_y
+            alpha = np.where(above_eye, alpha * 1.5, alpha)
+            
+            # Clip alpha to [0, 1]
+            alpha_clipped = np.clip(alpha, 0.0, 1.0)
+            
+            # Create mask slice
+            mask_slice = alpha_clipped * (dist <= 1.0)
+            
+            # Update the result image region for each channel
             for i in range(3):
-                result[:, :, i] = (result[:, :, i] * (1 - mask) + 
-                                 color_rgb[i] * mask * intensity + 
-                                 result[:, :, i] * mask * (1 - intensity))
+                result[y_min:y_max, x_min:x_max, i] = (
+                    result[y_min:y_max, x_min:x_max, i] * (1.0 - mask_slice) + 
+                    color_bgr[i] * mask_slice
+                )
         
         return result.astype(np.uint8)
     
     def apply_blush(self, image, landmarks, color_hex, intensity=0.4):
         """Apply blush to cheek areas"""
         height, width = image.shape[:2]
-        color_rgb = self.hex_to_rgb(color_hex)
+        color_bgr = self.hex_to_rgb(color_hex)[::-1]
         
         result = image.copy()
         
@@ -271,14 +283,14 @@ class RealtimeMakeupEngine:
             # Apply blush color
             for i in range(3):
                 result[:, :, i] = (result[:, :, i] * (1 - mask * intensity) + 
-                                 color_rgb[i] * mask * intensity)
+                                 color_bgr[i] * mask * intensity)
         
         return result.astype(np.uint8)
     
     def apply_foundation(self, image, landmarks, color_hex, intensity=0.3):
         """Apply foundation to face area"""
         height, width = image.shape[:2]
-        color_rgb = self.hex_to_rgb(color_hex)
+        color_bgr = self.hex_to_rgb(color_hex)[::-1]
         
         # Create face mask
         face_points = []
@@ -304,16 +316,17 @@ class RealtimeMakeupEngine:
         result = image.copy()
         for i in range(3):
             result[:, :, i] = (image[:, :, i] * (1 - mask_normalized * intensity) + 
-                             color_rgb[i] * mask_normalized * intensity)
+                             color_bgr[i] * mask_normalized * intensity)
         
         return result.astype(np.uint8)
     
     def apply_eyeliner(self, image, landmarks, color_hex, intensity=0.9, thickness=2):
         """Apply eyeliner along the eye contour"""
         height, width = image.shape[:2]
-        color_rgb = self.hex_to_rgb(color_hex)
+        color_bgr = self.hex_to_rgb(color_hex)[::-1]
         
         result = image.copy()
+        overlay = image.copy()
         
         # Apply to both eyes
         for eye_landmarks in ['left_eye', 'right_eye']:
@@ -333,17 +346,19 @@ class RealtimeMakeupEngine:
             # Get upper eyelid points (approximate)
             upper_points = eye_points[:len(eye_points)//2]
             
-            # Draw smooth eyeliner
+            # Draw smooth eyeliner on overlay
             for i in range(len(upper_points) - 1):
-                cv2.line(result, tuple(upper_points[i]), tuple(upper_points[i+1]), 
-                        color_rgb, thickness)
+                cv2.line(overlay, tuple(upper_points[i]), tuple(upper_points[i+1]), 
+                        color_bgr, thickness)
         
+        # Blend overlay with original using intensity
+        cv2.addWeighted(overlay, intensity, result, 1 - intensity, 0, dst=result)
         return result
     
     def apply_eyebrow_enhancement(self, image, landmarks, color_hex, intensity=0.5):
         """Enhance eyebrows with color and definition"""
         height, width = image.shape[:2]
-        color_rgb = self.hex_to_rgb(color_hex)
+        color_bgr = self.hex_to_rgb(color_hex)[::-1]
         
         result = image.copy()
         
@@ -375,7 +390,7 @@ class RealtimeMakeupEngine:
             mask_normalized = mask.astype(np.float32) / 255.0
             for i in range(3):
                 result[:, :, i] = (result[:, :, i] * (1 - mask_normalized * intensity) + 
-                                 color_rgb[i] * mask_normalized * intensity)
+                                 color_bgr[i] * mask_normalized * intensity)
         
         return result.astype(np.uint8)
     

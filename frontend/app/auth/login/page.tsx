@@ -82,7 +82,7 @@ export default function LoginPage() {
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500"
         style={{ 
-          backgroundImage: `url('/images/auth-bg.png')`,
+          backgroundImage: `url('/images/auth-bg.jpg')`,
           filter: theme === 'dark' ? 'brightness(0.25) contrast(1.1) blur(4px)' : 'brightness(0.85) contrast(0.95) blur(4px)' 
         }} 
       />

@@ -354,12 +354,21 @@ export default function SkinAnalysisPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-950 via-black to-gray-950 text-white">
+      {/* Background Image with Overlay */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 opacity-45 pointer-events-none"
+        style={{ 
+          backgroundImage: `url('/images/skin-bg.jpg')`,
+          filter: 'brightness(0.3) contrast(1.15) blur(2px)' 
+        }} 
+      />
+
       {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-rose-400/10 to-pink-400/10 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-purple-400/10 to-rose-400/10 rounded-full blur-xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-br from-pink-400/10 to-purple-400/10 rounded-full blur-xl animate-pulse delay-2000"></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-rose-400/15 to-pink-400/15 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-purple-400/15 to-rose-400/15 rounded-full blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-br from-pink-400/15 to-purple-400/15 rounded-full blur-xl animate-pulse delay-2000"></div>
       </div>
 
       <div className="container mx-auto px-4 py-12 relative z-10">
@@ -422,7 +431,7 @@ export default function SkinAnalysisPage() {
 
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Image Upload Section */}
-            <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-rose-400/20 backdrop-blur-sm">
+            <Card className="!bg-white/5 dark:!bg-black/30 border border-white/10 dark:border-white/5 backdrop-blur-xl relative z-10 shadow-2xl transition-all duration-500 hover:shadow-rose-500/5 hover:border-rose-400/25">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <div className="p-2 bg-gradient-to-br from-rose-500 to-pink-500 rounded-lg">
@@ -435,7 +444,7 @@ export default function SkinAnalysisPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="border-2 border-dashed border-rose-400/30 rounded-2xl p-12 text-center hover:border-rose-400/50 transition-colors bg-gradient-to-br from-rose-500/5 to-pink-500/5">
+                <div className="border-2 border-dashed border-rose-400/20 rounded-2xl p-12 text-center hover:border-rose-400/40 transition-all duration-300 bg-white/5 backdrop-blur-md hover:bg-white/10">
                   {selectedImage ? (
                     <div className="space-y-6">
                       <div className="relative">
@@ -558,7 +567,7 @@ export default function SkinAnalysisPage() {
             </Card>
 
             {/* Results Section */}
-            <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-rose-400/20 backdrop-blur-sm">
+            <Card className="!bg-white/5 dark:!bg-black/30 border border-white/10 dark:border-white/5 backdrop-blur-xl relative z-10 shadow-2xl transition-all duration-500 hover:shadow-purple-500/5 hover:border-purple-400/25">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <div className="p-2 bg-gradient-to-br from-purple-500 to-rose-500 rounded-lg">
@@ -600,16 +609,16 @@ export default function SkinAnalysisPage() {
                 ) : analysisResult ? (
                   <div className="space-y-6">
                     <Tabs defaultValue="analysis" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 bg-gray-800/50 border border-rose-400/20">
+                      <TabsList className="grid w-full grid-cols-2 bg-black/40 border border-white/10">
                         <TabsTrigger
                           value="analysis"
-                          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500"
+                          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 text-white"
                         >
                           Analysis
                         </TabsTrigger>
                         <TabsTrigger
                           value="recommendations"
-                          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500"
+                          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 text-white"
                         >
                           Recommendations
                         </TabsTrigger>
